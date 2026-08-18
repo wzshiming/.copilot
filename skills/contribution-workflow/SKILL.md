@@ -25,5 +25,3 @@ Load each reference only when performing that task; skip tasks that don't apply.
 | Push              | [push.md](./references/push.md)     | Remotes (fork vs upstream), `gh auth`, push target: own repo vs fork, force-sync fork with upstream, creating a fork if missing                                                                                  |
 | Issue (if needed) | [issue.md](./references/issue.md)   | Duplicate search, whether an Issue is needed at all, Issue-before-PR ordering, filling `.md`/`.yml` issue templates, `gh issue create`, verification                                                             |
 | PR                | [pr.md](./references/pr.md)         | Duplicate PR search, filling the PR template (`/kind`, `release-note`, checklists), cross-fork `gh pr create`, `Fixes #N` linking, CI watch-and-fix loop (`gh pr checks --watch`), verification, final tone pass |
-
-Shared reference: [writing-style.md](./references/writing-style.md) — voice and length rules for all written output (commit messages, Issue/PR bodies); loaded from commit, Issue, and PR.
