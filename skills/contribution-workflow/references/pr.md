@@ -43,14 +43,14 @@ gh pr create --repo <upstream> --head <fork-owner>:<branch> --base <default-bran
 Don't run the project's test suites locally — the PR's CI is the source of truth. After creating the PR (or pushing new commits to it), watch the checks until they finish; `GH_PAGER=cat` avoids getting stuck in a pager:
 
 ```sh
-GH_PAGER=cat gh pr checks <number> --watch --interval 30 2>&1 | tail -5
+GH_PAGER=cat gh pr checks <number> --repo <upstream> --watch --interval 30 2>&1 | tail -5
 ```
 
 On a failure, pull the log instead of rerunning anything locally:
 
 ```sh
-GH_PAGER=cat gh pr checks <number>                    # failing check → run/job URL
-gh run view --job <job-id> --log-failed | tail -120   # failing tests + errors
+GH_PAGER=cat gh pr checks <number> --repo <upstream>                   # failing check → run/job URL
+gh run view --job <job-id> --repo <upstream> --log-failed | tail -120  # failing tests + errors
 ```
 
 Diagnose from the log first; reproduce a single failing test locally only when the log isn't enough. Fix and push a follow-up commit to the same branch (don't amend + force-push mid-review unless the repo convention asks for squashed commits) — CI restarts on its own — then watch again. If the fix invalidates anything the PR body claims, update it with `gh pr edit`.
@@ -59,6 +59,6 @@ Diagnose from the log first; reproduce a single failing test locally only when t
 
 - Confirm the URL and echo it to the user
 - Watch CI to completion (see "CI is the test run") and report the final check status
-- If the body references an Issue, check `Fixes #N` actually links (visible in PR sidebar via `gh pr view`)
+- If the body references an Issue, check `Fixes #N` actually links (visible in PR sidebar via `gh pr view <num> --repo <upstream>`)
 - Reread the body once as a stranger would — if anything sounds templated or overstated, edit it down (`gh pr edit <num> --repo <upstream>`)
 - Stop after creating; don't post extra comments on your own PR or ping maintainers for review
