@@ -1,0 +1,12 @@
+{
+  "name": "my-skills",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Personal agent skills (Markdown docs)",
+  "scripts": {
+    "format": "npx --yes prettier@3.9.6 --write \"**/*.md\"",
+    "format:check": "npx --yes prettier@3.9.6 --check \"**/*.md\"",
+    "lint": "npx --yes markdownlint-cli2@0.17.2 \"**/*.md\"",
+    "check": "npm run format:check && npm run lint"
+  }
+}
