@@ -35,6 +35,7 @@ gh pr create --repo <upstream> --head <fork-owner>:<branch> --base <default-bran
 - Never push to upstream; the PR goes cross-fork via `--head`
 - Own repo with write access (branch pushed directly, per [push.md](./push.md)): drop `--repo` and `--head`
 - Title: reuse the commit message convention observed in `git log`
+- Unfinished work: create the PR anyway to use its CI as the test run — prefix the title with `WIP:`, then remove the prefix (`gh pr edit --title`) once it's ready for review
 - If there is a related Issue (new or existing), set `Fixes #<N>` in the body with the real number; if none, drop any `Fixes #<N>` placeholder
 - Don't self-assign, request reviewers, or add milestone/project — that's the maintainers' call
 
