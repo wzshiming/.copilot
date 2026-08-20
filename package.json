@@ -1,8 +1,8 @@
 {
-  "name": "my-skills",
+  "name": ".copilot",
   "version": "0.1.0",
   "private": true,
-  "description": "Personal agent skills (Markdown docs)",
+  "description": "Personal .copilot (Markdown docs)",
   "scripts": {
     "format": "npx --yes prettier@3.9.6 --write \"**/*.md\"",
     "format:check": "npx --yes prettier@3.9.6 --check \"**/*.md\"",

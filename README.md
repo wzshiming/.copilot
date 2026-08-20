@@ -1,3 +1,3 @@
-# my-skills
+# .copilot
 
-My personal agent skills
+My personal .copilot
