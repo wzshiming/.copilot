@@ -19,14 +19,14 @@ tools:
     "vscode/askQuestions",
     "agent",
   ]
-agents: ["Scout"]
+agents: ["Scout", "Reviewer"]
 handoffs:
   - label: Start Implementation
-    agent: Coder
+    agent: Orchestrator
     prompt: "Start implementation"
     send: true
   - label: Open in Editor
-    agent: Coder
+    agent: Orchestrator
     prompt: "#createFile the plan as is into an untitled file (`untitled:plan-${camelCaseName}.prompt.md` without frontmatter) for further refinement."
     send: true
     showContinueOn: false
