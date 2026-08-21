@@ -17,6 +17,15 @@ tools:
     "agent",
   ]
 agents: ["Examiner"]
+handoffs:
+  - label: Rework
+    agent: Orchestrator
+    prompt: "Rework: take the Challenger verdict above (confirmed issue list + necessity table), read the task ledger in /memories/repo/ if present, dispatch fixes for each confirmed issue, then re-verify."
+    send: true
+  - label: Re-plan
+    agent: Planner
+    prompt: "Redesign: the Challenger verdict above rejected the current approach; treat the confirmed issues as constraints and revise the plan (/memories/session/plan.md) rather than patching the implementation."
+    send: true
 ---
 
 # Challenger
@@ -49,3 +58,4 @@ An issue is confirmed only if at least 2 examiners independently agree OR you ve
 - Confirmed issue list (each: file and location, evidence, suggested fix)
 - Cross-model consensus matrix (which examiner flagged what: Fable / Opus / Sol columns)
 - Verification commands you ran and their results
+- On Reject, end by recommending a handoff: Rework (Orchestrator) for implementation-level issues, Redesign (Planner) for approach-level flaws
