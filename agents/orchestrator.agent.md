@@ -18,14 +18,6 @@ tools:
     "vscode/askQuestions",
   ]
 agents: ["Scout", "Coder", "Reviewer", "Challenger"]
-handoffs:
-  - label: Report Results
-    agent: Reporter
-    prompt: "Report the final results: read the task ledger in /memories/repo/ and the chat context above, verify the changes yourself, and deliver the completion report."
-  - label: Re-plan
-    agent: Planner
-    prompt: "Revise the plan: read the task ledger in /memories/repo/ and the plan-level ambiguities flagged above, then update the plan."
-    send: true
 ---
 
 # Orchestrator
@@ -57,7 +49,3 @@ Any of these triggers the Advance checkpoint immediately, without waiting for th
 - If #tool:vscode/askQuestions or the todo tool is unavailable (running as a subagent), don't attempt them: track progress in the ledger alone and return open questions in your final report instead.
 - Never absorb large implementations yourself — delegation keeps your context clean for coordination.
 - The ledger is the source of truth for progress; keep it current so any session can resume.
-
-## Completion
-
-Run a final end-to-end verification and mark the ledger complete, then end the turn recommending the Report Results handoff to _Reporter_ — keep your own closing summary to a few lines; the full report is _Reporter_'s job.

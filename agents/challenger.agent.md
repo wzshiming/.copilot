@@ -22,10 +22,6 @@ handoffs:
     agent: Orchestrator
     prompt: "Rework: take the Challenger verdict above (confirmed issue list + necessity table), read the task ledger in /memories/repo/ if present, dispatch fixes for each confirmed issue, then re-verify."
     send: true
-  - label: Re-plan
-    agent: Planner
-    prompt: "Redesign: the Challenger verdict above rejected the current approach; treat the confirmed issues as constraints and revise the plan (/memories/session/plan.md) rather than patching the implementation."
-    send: true
 ---
 
 # Challenger
