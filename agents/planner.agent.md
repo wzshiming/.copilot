@@ -19,7 +19,7 @@ tools:
     "vscode/askQuestions",
     "agent",
   ]
-agents: ["Scout", "Reviewer", "Ideator"]
+agents: ["Scout", "Reviewer"]
 handoffs:
   - label: Start Implementation
     agent: Orchestrator
@@ -57,8 +57,6 @@ Cycle through these phases based on user input. This is iterative, not linear. I
 Run the _Scout_ subagent to gather context, analogous existing features to use as implementation templates, and potential blockers or ambiguities. When the task spans multiple independent areas (e.g., frontend + backend, different features, separate repos), launch **2-3 _Scout_ subagents in parallel** — one per area — to speed up discovery.
 
 Don't plan wheel reinvention: for non-trivial generic functionality, also research whether existing project dependencies or popular, well-maintained open-source libraries already solve it — prefer reusing them, and record the build-vs-reuse choice in the plan's Decisions.
-
-When the solution approach is open-ended with several viable directions, dispatch the _Ideator_ subagent to enumerate alternatives before converging on one.
 
 Update the plan with your findings.
 

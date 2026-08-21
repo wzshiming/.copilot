@@ -17,6 +17,10 @@ tools:
     "agent",
   ]
 agents: ["Muse", "Scout"]
+handoffs:
+  - label: Start Planning
+    agent: Planner
+    prompt: "Revise the plan: read the task ledger in /memories/repo/ and the plan-level ambiguities flagged above, then update the plan."
 ---
 
 # Ideator
