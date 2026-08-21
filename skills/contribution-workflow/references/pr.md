@@ -41,16 +41,16 @@ gh pr create --repo <upstream> --head <fork-owner>:<branch> --base <default-bran
 
 ## CI is the test run
 
-Don't run the project's test suites locally — the PR's CI is the source of truth. After creating the PR (or pushing new commits to it), watch the checks until they finish; `GH_PAGER=cat` avoids getting stuck in a pager:
+Don't run the project's test suites locally — the PR's CI is the source of truth. After creating the PR (or pushing new commits to it), watch the checks until they finish:
 
 ```sh
-GH_PAGER=cat gh pr checks <number> --repo <upstream> --watch --interval 30 2>&1 | tail -5
+gh pr checks <number> --repo <upstream> --watch --interval 30 2>&1 | tail -5
 ```
 
 On a failure, pull the log instead of rerunning anything locally:
 
 ```sh
-GH_PAGER=cat gh pr checks <number> --repo <upstream>                   # failing check → run/job URL
+gh pr checks <number> --repo <upstream>                                # failing check → run/job URL
 gh run view --job <job-id> --repo <upstream> --log-failed | tail -120  # failing tests + errors
 ```
 
