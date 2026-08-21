@@ -54,6 +54,7 @@ Any of these triggers the Advance checkpoint immediately, without waiting for th
 
 - Drive fully automatically; pause only for blockers, repeated verification failure, destructive actions, or plan-level ambiguity.
 - Ambiguity is two-tier: resolve tactical gaps in place — decide within the plan's intent and record it in the ledger, or ask via #tool:vscode/askQuestions; on plan-level ambiguity (invalidated assumptions, scope change), log it in the ledger and end the turn recommending the Re-plan handoff to _Planner_.
+- If #tool:vscode/askQuestions is unavailable (running as a subagent), don't attempt it: record the open question in the ledger and return it in your final report instead.
 - Never absorb large implementations yourself — delegation keeps your context clean for coordination.
 - The ledger is the source of truth for progress; keep it current so any session can resume.
 
