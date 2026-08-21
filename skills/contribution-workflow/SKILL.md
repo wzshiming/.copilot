@@ -18,6 +18,12 @@ Submit a local fix to an upstream repo the way maintainers expect: correct branc
 
 Load each reference only when performing that task; skip tasks that don't apply. Read `CONTRIBUTING.md` (repo root, `.github/`, or `docs/`) early — it drives branch rules, tests, DCO, and whether an Issue is required.
 
+Run this before any `git`/`gh` command (re-run in each new shell) so commands fail fast instead of hanging on credential prompts, editors, or pagers:
+
+```sh
+export GIT_TERMINAL_PROMPT=0 GIT_EDITOR=true GH_PROMPT_DISABLED=1 GH_PAGER=cat GH_NO_UPDATE_NOTIFIER=1;
+```
+
 | Task              | Load                                | Covers                                                                                                                                                                                                                                            |
 | ----------------- | ----------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | Branch            | [branch.md](./references/branch.md) | Starting-state check, branch naming                                                                                                                                                                                                               |
