@@ -21,7 +21,6 @@ handoffs:
   - label: Rework
     agent: Orchestrator
     prompt: "Rework: take the Challenger verdict above (confirmed issue list + necessity table), read the task ledger in /memories/repo/ if present, dispatch fixes for each confirmed issue, then re-verify."
-    send: true
 ---
 
 # Challenger
