@@ -2,7 +2,7 @@
 name: Coder
 description: General-purpose coding agent that implements changes end-to-end (default Agent equivalent)
 argument-hint: Describe the task to implement
-model: ["Claude Fable 5 (copilot)"]
+model: ["Claude Fable 5.1 (copilot)"]
 target: vscode
 agents: ["Scout", "Reviewer"]
 ---

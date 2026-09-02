@@ -2,7 +2,7 @@
 name: Planner
 description: Researches and outlines multi-step plans
 argument-hint: Outline the goal or problem to research
-model: ["Claude Fable 5 (copilot)"]
+model: ["Claude Fable 5.1 (copilot)"]
 target: vscode
 disable-model-invocation: true
 tools:

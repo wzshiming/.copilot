@@ -2,7 +2,7 @@
 name: Orchestrator
 description: "Coordinator that drives long-chain, multi-stage tasks end-to-end. Use when: executing an approved plan from Planner, orchestrating a long-running task across many stages, breaking a big goal into dispatched subtasks, coordinating multiple subagents toward one goal, resuming an interrupted long task."
 argument-hint: Describe the long-chain goal and any known constraints
-model: ["Claude Fable 5 (copilot)"]
+model: ["Claude Fable 5.1 (copilot)"]
 target: vscode
 disable-model-invocation: true
 tools:
