@@ -8,10 +8,10 @@ argument-hint: "What changed and why; the repo's commit convention or DCO requir
 
 Commit one logical change with a minimal diff and a message that matches the repo's history.
 
-Run this before any `git`/`gh` command (re-run in each new shell) so commands fail fast instead of hanging on credential prompts, editors, or pagers:
+Run this before `git commit` (re-run in each new shell) so a commit without `-m`/`-F` fails fast instead of hanging in an editor:
 
 ```sh
-export GIT_TERMINAL_PROMPT=0 GIT_EDITOR=true GH_PROMPT_DISABLED=1 GH_PAGER=cat GH_NO_UPDATE_NOTIFIER=1;
+export GIT_EDITOR=true;
 ```
 
 ## Pre-commit checks

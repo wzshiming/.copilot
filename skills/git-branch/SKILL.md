@@ -8,12 +8,6 @@ argument-hint: "What the change is and the issue number if there is one; remote 
 
 Branch off the latest upstream default branch. Never work on the default branch directly; one branch per logical change.
 
-Run this before any `git`/`gh` command (re-run in each new shell) so commands fail fast instead of hanging on credential prompts, editors, or pagers:
-
-```sh
-export GIT_TERMINAL_PROMPT=0 GIT_EDITOR=true GH_PROMPT_DISABLED=1 GH_PAGER=cat GH_NO_UPDATE_NOTIFIER=1;
-```
-
 Check the starting state first — note the current branch and any dirty files:
 
 ```sh
@@ -25,7 +19,7 @@ If this checkout must stay untouched — it holds another session's dirty state,
 Fetch and branch from the latest default branch — `<remote>` is `upstream` in a fork layout, `origin` in your own repo:
 
 ```sh
-git fetch <remote>
+GIT_TERMINAL_PROMPT=0 git fetch <remote>   # fail fast instead of hanging on a credential prompt
 git checkout -b <branch> <remote>/<default-branch>
 ```
 

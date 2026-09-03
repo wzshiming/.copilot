@@ -8,7 +8,7 @@ argument-hint: "Branch to push and whether the repo is your own or a fork layout
 
 Push the branch to the remote a PR can be opened from: the canonical repo when you have write access, your fork otherwise.
 
-Run this before any `git`/`gh` command (re-run in each new shell) so commands fail fast instead of hanging on credential prompts, editors, or pagers:
+Run this before any `git`/`gh` command (re-run in each new shell) so `fetch`/`push` fail fast on credential prompts, a conflicted `rebase --continue` doesn't open an editor, and `gh` doesn't prompt or page:
 
 ```sh
 export GIT_TERMINAL_PROMPT=0 GIT_EDITOR=true GH_PROMPT_DISABLED=1 GH_PAGER=cat GH_NO_UPDATE_NOTIFIER=1;

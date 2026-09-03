@@ -29,7 +29,7 @@ These are user-side actions; an agent already mid-session cannot trigger them â€
 ## Git Fallback
 
 ```sh
-git fetch <remote>
+GIT_TERMINAL_PROMPT=0 git fetch <remote>   # fail fast instead of hanging on a credential prompt
 git check-ignore -q "$(git rev-parse --show-toplevel)/.worktrees" || echo '/.worktrees' >> "$(git rev-parse --path-format=absolute --git-common-dir)/info/exclude"
 # --no-track: otherwise branch -d after a local merge checks <remote>/<default-branch> and refuses
 git worktree add --no-track "$(git rev-parse --show-toplevel)/.worktrees/<branch>" -b <branch> <remote>/<default-branch>

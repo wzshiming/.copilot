@@ -25,7 +25,7 @@ Integrate a finished branch the way the user chooses and remove only the worktre
 
 4. **Choose** — present exactly these three options and wait for the answer:
    1. Push and open a PR via git-commit → git-push → github-pr; keep the worktree while the PR is open.
-   2. Merge locally: from the main root `git checkout <base> && git pull && git merge <branch>`, re-run the suite on the merged result, then clean up. A red merged result stops everything — nothing was pushed, so it is fully recoverable.
+   2. Merge locally: from the main root `git checkout <base> && GIT_TERMINAL_PROMPT=0 git pull --no-edit && git merge --no-edit <branch>`, re-run the suite on the merged result, then clean up. A red merged result stops everything — nothing was pushed, so it is fully recoverable.
    3. Keep as-is: report branch and path.
 
    Discarding is never offered. Only when the user asks for it explicitly, show branch, commits, and path and require the typed word `discard`. Unattended (subagent or Autopilot): option 1 if the task asked for a PR, otherwise option 3 — and report which.
