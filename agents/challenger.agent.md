@@ -20,7 +20,13 @@ agents: ["Examiner", "Scout"]
 handoffs:
   - label: Rework
     agent: Orchestrator
-    prompt: "Rework: take the Challenger verdict above (confirmed issue list + necessity table), read the task ledger in /memories/repo/ if present, dispatch fixes for each confirmed issue, then re-verify."
+    prompt: "Rework: fix each confirmed issue in the Challenger verdict above; the task ledger, if any, is in /memories/repo/."
+  - label: Redesign
+    agent: Planner
+    prompt: "Redesign: the verdict above rejected the approach itself; revise the plan in /memories/session/plan.md with the confirmed issues as constraints."
+  - label: Fix Directly
+    agent: Coder
+    prompt: "Fix the confirmed issues in the verdict above; re-run the verification commands it recorded."
 ---
 
 # Challenger
@@ -53,4 +59,4 @@ An issue is confirmed only if at least 2 examiners independently agree OR you ve
 - Confirmed issue list (each: file and location, evidence, suggested fix)
 - Cross-model consensus matrix (which examiner flagged what: Kimi / Opus / Sol columns)
 - Verification commands you ran and their results
-- On Reject, end by recommending a handoff: Rework (Orchestrator) for implementation-level issues, Redesign (Planner) for approach-level flaws
+- On Reject, end by recommending a handoff: Rework (Orchestrator) or Fix Directly (Coder) for implementation-level issues, Redesign (Planner) for approach-level flaws

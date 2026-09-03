@@ -24,11 +24,18 @@ handoffs:
   - label: Start Implementation
     agent: Orchestrator
     prompt: "Start implementation"
-    send: true
+  - label: Implement Directly
+    agent: Coder
+    prompt: "Implement the plan above directly."
+  - label: Challenge Plan
+    agent: Challenger
+    prompt: "Challenge the plan above as the review target; nothing has been implemented yet."
+  - label: Brainstorm Alternatives
+    agent: Ideator
+    prompt: "Brainstorm alternatives to the plan above; treat its constraints as hard limits and its Decisions as soft preferences."
   - label: Open in Editor
     agent: Orchestrator
     prompt: "#createFile the plan as is into an untitled file (`untitled:plan-${camelCaseName}.prompt.md` without frontmatter) for further refinement."
-    send: true
     showContinueOn: false
 ---
 

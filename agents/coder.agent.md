@@ -5,6 +5,16 @@ argument-hint: Describe the task to implement
 model: ["Claude Fable 5.1 (copilot)"]
 target: vscode
 agents: ["Scout", "Reviewer"]
+handoffs:
+  - label: Challenge
+    agent: Challenger
+    prompt: "Challenge the changes above as the review target."
+  - label: Plan
+    agent: Planner
+    prompt: "Plan the remaining work above before continuing."
+  - label: Orchestrate
+    agent: Orchestrator
+    prompt: "Take over the remaining work above as a long-chain task."
 ---
 
 # Coder

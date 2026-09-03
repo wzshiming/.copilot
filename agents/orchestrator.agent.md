@@ -18,6 +18,16 @@ tools:
     "vscode/askQuestions",
   ]
 agents: ["Scout", "Coder", "Reviewer", "Challenger"]
+handoffs:
+  - label: Re-plan
+    agent: Planner
+    prompt: "Revise the plan around the plan-level ambiguities flagged above; the task ledger is in /memories/repo/."
+  - label: Challenge Result
+    agent: Challenger
+    prompt: "Challenge the completed work above as the review target; requirements and changed files are in the task ledger in /memories/repo/."
+  - label: Continue in Coder
+    agent: Coder
+    prompt: "Continue the work above with small follow-up changes; the task ledger is in /memories/repo/."
 ---
 
 # Orchestrator

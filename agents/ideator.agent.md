@@ -20,7 +20,13 @@ agents: ["Muse", "Scout"]
 handoffs:
   - label: Start Planning
     agent: Planner
-    prompt: "Revise the plan: read the task ledger in /memories/repo/ and the plan-level ambiguities flagged above, then update the plan."
+    prompt: "Plan the implementation of one of the Top 3 recommendations above; confirm with the user which one."
+  - label: Implement Directly
+    agent: Coder
+    prompt: "Implement the first recommendation above, starting from its first next step."
+  - label: Challenge Ideas
+    agent: Challenger
+    prompt: "Challenge the Top 3 recommendations above as the review target; their novelty and feasibility claims are what to refute."
 ---
 
 # Ideator

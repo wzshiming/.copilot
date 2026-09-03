@@ -20,6 +20,16 @@ tools:
     "vscode/askQuestions",
   ]
 agents: []
+handoffs:
+  - label: Plan
+    agent: Planner
+    prompt: "Plan the change discussed above."
+  - label: Implement
+    agent: Coder
+    prompt: "Implement the change discussed above."
+  - label: Brainstorm
+    agent: Ideator
+    prompt: "Brainstorm alternatives to the approach discussed above."
 ---
 
 # Advisor
