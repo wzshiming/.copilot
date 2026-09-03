@@ -10,7 +10,7 @@ Only `.github/`, `skills/`, `agents/`, and dotfiles are tracked (plus root docs 
 
 - Each skill lives in `skills/<name>/SKILL.md` with YAML frontmatter (`name`, `description`, `argument-hint`).
 - `name` must match the folder name; quote `description` values containing colons.
-- Detailed steps go in `skills/<name>/references/*.md`, linked from a task index in SKILL.md and loaded on demand.
+- Each skill is self-contained in its SKILL.md. Split a multi-step flow into separate skills and refer to them by plain name in body text (there is no `skills:` frontmatter).
 
 ### Agents
 
@@ -26,5 +26,5 @@ Only `.github/`, `skills/`, `agents/`, and dotfiles are tracked (plus root docs 
 
 ## Conventions
 
-- Keep docs minimal: SKILL.md holds only the workflow overview and task index; references hold only orchestration-critical detail; agent bodies hold only orchestration and necessary info.
+- Keep docs minimal: SKILL.md holds only the workflow and its commands; agent bodies hold only orchestration and necessary info.
 - Write descriptions with concrete "Use when:" trigger phrases — they are the discovery surface.

@@ -1,4 +1,18 @@
-# Push
+---
+name: git-push
+description: "Push a branch to the right remote: own repo vs fork layout, `gh auth`, force-sync a stale fork with upstream and rebase, `--force-with-lease`, create a fork when missing, check write permission. Use when: pushing a branch before a PR, push rejected after a rebase, unsure whether to push to origin or a fork."
+argument-hint: "Branch to push and whether the repo is your own or a fork layout, if known"
+---
+
+# Git Push
+
+Push the branch to the remote a PR can be opened from: the canonical repo when you have write access, your fork otherwise.
+
+Run this before any `git`/`gh` command (re-run in each new shell) so commands fail fast instead of hanging on credential prompts, editors, or pagers:
+
+```sh
+export GIT_TERMINAL_PROMPT=0 GIT_EDITOR=true GH_PROMPT_DISABLED=1 GH_PAGER=cat GH_NO_UPDATE_NOTIFIER=1;
+```
 
 Identify the repo layout and confirm auth first:
 

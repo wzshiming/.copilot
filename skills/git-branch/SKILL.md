@@ -1,12 +1,26 @@
-# Branch
+---
+name: git-branch
+description: "Start a change on a correctly named branch off the latest default branch: starting-state check, fetch, `checkout -b`, naming convention (type prefix or `issue/<N>`). Use when: starting a fix or feature in a repo, naming a branch, branching off upstream in a fork layout."
+argument-hint: "What the change is and the issue number if there is one; remote and default branch if not standard"
+---
+
+# Git Branch
 
 Branch off the latest upstream default branch. Never work on the default branch directly; one branch per logical change.
+
+Run this before any `git`/`gh` command (re-run in each new shell) so commands fail fast instead of hanging on credential prompts, editors, or pagers:
+
+```sh
+export GIT_TERMINAL_PROMPT=0 GIT_EDITOR=true GH_PROMPT_DISABLED=1 GH_PAGER=cat GH_NO_UPDATE_NOTIFIER=1;
+```
 
 Check the starting state first — note the current branch and any dirty files:
 
 ```sh
 git branch --show-current && git status --short
 ```
+
+If this checkout must stay untouched — it holds another session's dirty state, or the work runs in parallel with other tasks — create the branch in its own worktree with git-worktree instead of `git checkout -b` below, then continue with git-commit.
 
 Fetch and branch from the latest default branch — `<remote>` is `upstream` in a fork layout, `origin` in your own repo:
 
