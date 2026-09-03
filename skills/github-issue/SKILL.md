@@ -8,10 +8,10 @@ argument-hint: "The bug or feature to report, the upstream repo, and whether a P
 
 Decide whether an Issue is needed at all, then fill the template, create it, link it, and verify the result.
 
-Run this before any `git`/`gh` command (re-run in each new shell) so commands fail fast instead of hanging on credential prompts, editors, or pagers:
+Run this before any `gh` command (re-run in each new shell) so commands fail fast instead of hanging on prompts or pagers:
 
 ```sh
-export GIT_TERMINAL_PROMPT=0 GIT_EDITOR=true GH_PROMPT_DISABLED=1 GH_PAGER=cat GH_NO_UPDATE_NOTIFIER=1;
+export GH_PROMPT_DISABLED=1 GH_PAGER=cat GH_NO_UPDATE_NOTIFIER=1;
 ```
 
 ## Decide whether an Issue is needed

@@ -8,10 +8,10 @@ argument-hint: "Branch, upstream repo, related Issue number if any, and whether 
 
 Fill the PR template faithfully, create the PR cross-fork, link the Issue, and verify the result.
 
-Run this before any `git`/`gh` command (re-run in each new shell) so commands fail fast instead of hanging on credential prompts, editors, or pagers:
+Run this before any `gh` command (re-run in each new shell) so commands fail fast instead of hanging on prompts or pagers:
 
 ```sh
-export GIT_TERMINAL_PROMPT=0 GIT_EDITOR=true GH_PROMPT_DISABLED=1 GH_PAGER=cat GH_NO_UPDATE_NOTIFIER=1;
+export GH_PROMPT_DISABLED=1 GH_PAGER=cat GH_NO_UPDATE_NOTIFIER=1;
 ```
 
 Prerequisites: the branch is pushed (per git-push). If a related Issue is warranted, create it first per github-issue so `Fixes #<N>` links at creation time.
@@ -58,7 +58,7 @@ gh pr create --repo <upstream> --head <fork-owner>:<branch> --base <default-bran
 
 - Never push to upstream; the PR goes cross-fork via `--head`
 - Own repo with write access (branch pushed directly, per git-push): drop `--repo` and `--head`
-- Title: imperative, ≤ ~70 chars, same convention as the commit subjects in `git log`
+- Title: imperative, ≤ ~70 chars, same convention as the commit subjects (`git --no-pager log --oneline -10`)
 - Unfinished work: create the PR anyway to use its CI as the test run — prefix the title with `WIP:`, then remove the prefix (`gh pr edit --title`) once it's ready for review
 - If there is a related Issue (new or existing), set `Fixes #<N>` in the body with the real number; if none, drop any `Fixes #<N>` placeholder
 - Don't self-assign, @-mention or request reviewers, or add milestone/project — that's the maintainers' call
