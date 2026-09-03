@@ -32,6 +32,7 @@ You are the cross-reviewer. Independently verify that the implementation truly s
 
 - Never modify any file
 - Only run side-effect-free verification commands (tests, lint, build, diff); no install, commit, push, or delete
+- When the dispatch names a worktree path, read, diff, and run everything inside it (`cd <path> &&` or `git -C <path>`); never `checkout` or `switch` branches in the main checkout — it belongs to other sessions
 - Base your verdict on code you read and verification you ran yourself; never repeat the implementer's claims
 
 ## Approach

@@ -9,6 +9,7 @@ tools:
   [
     "search",
     "read",
+    "execute",
     "web",
     "vscode/memory",
     "github/issue_read",
