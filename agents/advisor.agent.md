@@ -2,7 +2,7 @@
 name: Advisor
 description: Answers questions without making changes
 argument-hint: Ask a question about your code or project
-model: ["GPT-5.6 Sol (copilot)"]
+model: ["GPT-6 Astra (copilot)"]
 target: vscode
 disable-model-invocation: true
 tools:
