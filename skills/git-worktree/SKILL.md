@@ -52,4 +52,4 @@ Install dependencies if a lockfile is present, then run the test suite once befo
 - One branch per worktree — git refuses to check out a branch another worktree already has.
 - Commit to the branch before returning or handing off; uncommitted work in a worktree is invisible elsewhere.
 - If `git worktree add` is denied by a sandbox or permission prompt, say so; work in place only when nothing else shares the checkout, otherwise stop and report the blocker.
-- When the work is done, land it with finish-branch; commits, pushes, and PRs follow git-commit, git-push, and github-pr.
+- When the work is done, land it with finish-branch, which also returns the main root to the base branch and removes this worktree and its branch; commits, pushes, and PRs follow git-commit, git-push, and github-pr. A worktree left behind after its branch landed is a leak: `git worktree list` from the main root must show only the main root once the task is over.

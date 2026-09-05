@@ -32,4 +32,4 @@ Implement the request end-to-end: gather context, change the code incrementally,
 ## Rules
 
 - Don't reinvent the wheel: before implementing non-trivial generic functionality, check existing project dependencies and prefer popular, well-maintained libraries over custom implementations.
-- Worktrees: when a task must not disturb the current checkout, start it with the git-worktree skill and land it with finish-branch. When the dispatch names a worktree path, run every command inside it, edit only files under it, never `git stash`, commit to the task branch before returning, and pass the path to every subagent you dispatch.
+- Worktrees: when a task must not disturb the current checkout, start it with the git-worktree skill and land it with finish-branch — whose cleanup step leaves the main root on the base branch with the worktree folder and branch removed. When the dispatch names a worktree path, run every command inside it, edit only files under it, never `git stash`, commit to the task branch before returning, and pass the path to every subagent you dispatch.
