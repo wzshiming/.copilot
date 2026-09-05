@@ -6,7 +6,7 @@ argument-hint: "Branch or worktree to finish, its base branch if known, and whet
 
 # Finish Branch
 
-Integrate a finished branch the way the user chooses, then leave the main root on its base branch and remove the worktree git-worktree created — the task is not finished while its worktree folder or branch is still around.
+Integrate a finished branch the way the user chooses, then leave the main root on its base branch and remove the worktree git-branch created — the task is not finished while its worktree folder or branch is still around.
 
 ## Steps
 
