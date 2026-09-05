@@ -6,7 +6,7 @@ argument-hint: "Branch or worktree to finish, its base branch if known, and whet
 
 # Finish Branch
 
-Integrate a finished branch the way the user chooses, then leave the main root on its base branch and remove the worktree git-branch created — the task is not finished while its worktree folder or branch is still around.
+Integrate a finished branch the way the user chooses, then leave the main root on its base branch and remove the worktree git-branch created — the task is not finished while its worktree folder, an emptied `.worktrees/` directory, or its branch is still around.
 
 ## Steps
 
@@ -35,14 +35,16 @@ Integrate a finished branch the way the user chooses, then leave the main root o
 
    Discarding is never offered. Only when the user asks for it explicitly, show branch, commits, and path and require the typed word `discard`. Unattended (subagent or Autopilot): option 1 if the task asked for a PR, otherwise option 3 — and report which.
 
-5. **Clean up** — mandatory after option 2, a merged PR, or a confirmed discard; only for worktrees under `.worktrees/` (ours) — worktrees created by a harness (VS Code sessions, Copilot app, `copilot -w`) are removed by that harness. Leave the main root on `<base>`, remove the worktree folder, and delete the branch, in this order; `cd` out of the worktree first — its directory disappears under you. After a merged PR, `git -C <main-root> pull --ff-only` first so `<base>` holds the merge.
+5. **Clean up** — mandatory after option 2, a merged PR, or a confirmed discard; only for worktrees under `.worktrees/` (ours) — worktrees created by a harness (VS Code sessions, Copilot app, `copilot -w`) are removed by that harness. Leave the main root on `<base>`, remove the worktree folder and the `.worktrees/` directories it leaves empty (its `<prefix>/` dir, and `.worktrees/` itself after the last worktree), and delete the branch, in this order; `cd` out of the worktree first — its directory disappears under you. After a merged PR, `git -C <main-root> pull --ff-only` first so `<base>` holds the merge.
 
    ```sh
    cd "<main-root>"
    git branch --show-current                                 # <base>; if the branch itself is checked out here (no worktree): git switch <base>
    git worktree remove <worktree-path> && git worktree prune
+   find .worktrees -maxdepth 1 -type d -empty -delete        # emptied <prefix>/, then .worktrees/ itself after the last worktree; never descends into live worktrees
    git branch -d <branch>   # -D only for a confirmed discard, a squash-merged PR, or a branch that `git branch --merged <base>` lists
-   git worktree list && git branch --list <branch>           # main root alone, no output for the branch
+   git worktree list && git branch --list <branch>           # <worktree-path> gone; no output for the branch
+   [ ! -d .worktrees ] || ls -A .worktrees                   # other tasks' live worktrees only; no output once the last one is gone
    ```
 
-   Report the result: main root on `<base>` at `<commit>`, worktree removed, branch deleted. `-d` refusing with "not yet merged to `<remote>/…`" only reflects a tracking upstream on the branch; when `git branch --merged <base>` lists it, `-D` is safe. Removal refused ⇒ files exist only there: show `git -C <worktree-path> status --porcelain -uall` and ask whether to commit them, move them out, or delete them. Never `--force` on your own initiative. Option 3 skips this step: the worktree stays until the branch is landed later.
+   Report the result: main root on `<base>` at `<commit>`, worktree and its emptied `.worktrees/` directories removed, branch deleted. `-d` refusing with "not yet merged to `<remote>/…`" only reflects a tracking upstream on the branch; when `git branch --merged <base>` lists it, `-D` is safe. Removal refused ⇒ files exist only there: show `git -C <worktree-path> status --porcelain -uall` and ask whether to commit them, move them out, or delete them. Never `--force` on your own initiative. Option 3 skips this step: the worktree stays until the branch is landed later.
