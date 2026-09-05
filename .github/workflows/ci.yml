@@ -13,5 +13,5 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
-      # scripts pin tool versions via npx --yes, no install step needed
-      - run: npm run check
+      # the Makefile pins tool versions via npx --yes, no install step needed
+      - run: make check

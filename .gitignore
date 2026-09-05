@@ -3,7 +3,7 @@
 !agents
 !/*.md
 !/LICENSE
-!/package.json
+!/Makefile
 
 !.*
 .DS_Store

@@ -4,7 +4,7 @@ Personal agent and skills repository — Markdown docs only, no application code
 
 ## Structure
 
-Only `.github/`, `skills/`, `agents/`, dotfiles, root Markdown docs, `LICENSE`, and `package.json` are tracked; everything else at the root is local runtime state excluded by the `.gitignore` whitelist.
+Only `.github/`, `skills/`, `agents/`, dotfiles, root Markdown docs, `LICENSE`, and `Makefile` are tracked; everything else at the root is local runtime state excluded by the `.gitignore` whitelist.
 
 ### Skills
 
@@ -20,9 +20,9 @@ Only `.github/`, `skills/`, `agents/`, dotfiles, root Markdown docs, `LICENSE`, 
 
 ## Checks
 
-- `npm run check` — Prettier format check + markdownlint (run before committing).
-- `npm run format` — auto-format all Markdown.
-- CI (`.github/workflows/ci.yml`) runs `npm run check` on pushes to `master` and on all PRs.
+- `make check` — Prettier format check + markdownlint (run before committing).
+- `make format` — auto-format all Markdown.
+- CI (`.github/workflows/ci.yml`) runs `make check` on pushes to `master` and on all PRs.
 
 ## Conventions
 
