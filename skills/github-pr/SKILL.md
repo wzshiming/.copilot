@@ -8,18 +8,12 @@ argument-hint: "Branch, upstream repo, related Issue number if any, and whether 
 
 Fill the PR template faithfully, create the PR cross-fork, link the Issue, and verify the result.
 
-Run this before any `gh` command (re-run in each new shell) so commands fail fast instead of hanging on prompts or pagers:
-
-```sh
-export GH_PROMPT_DISABLED=1 GH_PAGER=cat GH_NO_UPDATE_NOTIFIER=1;
-```
-
 Prerequisites: the branch is pushed (per git-push). If a related Issue is warranted, create it first per github-issue so `Fixes #<N>` links at creation time.
 
-Check for an existing PR for the same fix first — if one exists, stop and tell the user; commenting there may beat a duplicate PR:
+Check for an open PR for the same fix first — if one exists, stop and tell the user; commenting there may beat a duplicate PR. Closed PRs don't block, but a merged one may mean the fix already landed — check `upstream/<base>` before continuing:
 
 ```sh
-gh search prs --repo <upstream> "<error keywords>" | head
+gh search prs --repo <upstream> --state open "<error keywords>" | head
 ```
 
 ## Fill the template
@@ -40,7 +34,7 @@ Body content depends on the type — **bug fix**: what was broken, why (root cau
 Applies to the body and to any follow-up comment the user asks for.
 
 - First person, plain and direct: one line of how you ran into it, then the change; write in the project's language (usually English) even when the conversation isn't
-- Match the register of 2–3 recently merged PRs (`gh pr list --repo <upstream> --state merged --limit 3`) — mirror their length and tone. Default short: a one-line fix gets a one-paragraph body (a sentence per template section), not five sections of prose
+- Match the register of 2–3 recently merged PRs (`gh pr list --repo <upstream> --state merged --limit 3 | cat`) — mirror their length and tone. Default short: a one-line fix gets a one-paragraph body (a sentence per template section), not five sections of prose
 - The diff speaks for itself: explain _why_ (root cause or design, approach) instead of restating the change line by line; anchor claims in file/line, exact error text, versions, commit hashes
 - Paste only real output — test runs and logs you actually produced; if you didn't run it, say so
 - The PR explains the change; the Issue states the problem — don't paste one body into the other
@@ -52,21 +46,22 @@ Applies to the body and to any follow-up comment the user asks for.
 Write the body to a temp file and pass `--body-file` — avoids shell quoting/escaping bugs:
 
 ```sh
-gh pr create --repo <upstream> --head <fork-owner>:<branch> --base <default-branch> \
+gh pr create --repo <upstream> --head <fork-owner>:<branch> --base <base> \
   --title "<same convention as commit message>" --body-file /tmp/<repo>-pr-body.md
 ```
 
+- `<base>` is the branch the work split from, confirmed as in finish-branch: the plan, the conversation, or an open PR names it; otherwise ask — unattended, use the default branch and say so
 - Never push to upstream; the PR goes cross-fork via `--head`
 - Own repo with write access (branch pushed directly, per git-push): drop `--repo` and `--head`
 - Title: imperative, ≤ ~70 chars, same convention as the commit subjects (`git --no-pager log --oneline -10`)
 - Unfinished work: create the PR anyway to use its CI as the test run — prefix the title with `WIP:`, then remove the prefix (`gh pr edit --title`) once it's ready for review
-- If there is a related Issue (new or existing), set `Fixes #<N>` in the body with the real number; if none, drop any `Fixes #<N>` placeholder
+- `Fixes #<N>` only for an Issue the PR fully resolves — it auto-closes on merge; a partial fix or context gets `Part of #<N>` / `Related to #<N>`; if there is no Issue, drop any `Fixes #<N>` placeholder
 - Don't self-assign, @-mention or request reviewers, or add milestone/project — that's the maintainers' call
 
 ## Verify and report
 
 - Confirm the URL and echo it to the user
 - Watch CI to completion per pr-ci-loop and report the final check status
-- If the body references an Issue, check `Fixes #N` actually links (visible in PR sidebar via `gh pr view <num> --repo <upstream>`)
-- Reread the body once as a stranger would — if anything sounds templated or overstated, edit it down (`gh pr edit <num> --repo <upstream>`)
+- If the body says `Fixes #N`, check it actually links: `gh pr view <num> --repo <upstream> --json closingIssuesReferences --jq '.closingIssuesReferences[].number' | cat` must print N
+- Reread the body once as a stranger would — if anything sounds templated or overstated, edit it down (`gh pr edit <num> --repo <upstream> --body-file <file>`)
 - Stop after creating; don't post extra comments on your own PR

@@ -14,7 +14,7 @@ Give each task its own working directory and branch so parallel sessions cannot 
 git rev-parse --path-format=absolute --git-dir --git-common-dir
 ```
 
-Two different lines mean you are already in a linked worktree: skip creation and report its path and branch. If `git rev-parse --show-superproject-working-tree` prints a path you are inside a submodule — treat it as a normal checkout.
+Two different lines mean you are already in a linked worktree. If it is this task's own worktree (created by the harness for this session, or the path named in your dispatch), skip creation and report its path and branch; to isolate further tasks from inside it — parallel dispatches — continue with the git fallback, which works from any checkout. If `git rev-parse --show-superproject-working-tree` prints a path you are inside a submodule — treat it as a normal checkout.
 
 ## Prefer the Harness's Native Option
 
@@ -28,11 +28,13 @@ These are user-side actions; an agent already mid-session cannot trigger them �
 
 ## Git Fallback
 
+`<main-root>` is the path on the first line of `git worktree list` — the main working tree, also when you run this from inside a linked worktree.
+
 ```sh
-GIT_TERMINAL_PROMPT=0 git fetch <remote>   # fail fast instead of hanging on a credential prompt
-git check-ignore -q "$(git rev-parse --show-toplevel)/.worktrees" || echo '/.worktrees' >> "$(git rev-parse --path-format=absolute --git-common-dir)/info/exclude"
+git fetch <remote>
+git -C "<main-root>" check-ignore -q .worktrees || echo '/.worktrees' >> "$(git rev-parse --path-format=absolute --git-common-dir)/info/exclude"
 # --no-track: otherwise branch -d after a local merge checks <remote>/<default-branch> and refuses
-git worktree add --no-track "$(git rev-parse --show-toplevel)/.worktrees/<branch>" -b <branch> <remote>/<default-branch>
+git worktree add --no-track "<main-root>/.worktrees/<branch>" -b <branch> <remote>/<default-branch>
 ```
 
 - `<remote>` is `upstream` in a fork layout, `origin` otherwise; name the branch per git-branch.
@@ -49,5 +51,5 @@ Install dependencies if a lockfile is present, then run the test suite once befo
 - Never `git stash`: the stash is shared by every worktree of the repo.
 - One branch per worktree — git refuses to check out a branch another worktree already has.
 - Commit to the branch before returning or handing off; uncommitted work in a worktree is invisible elsewhere.
-- If `git worktree add` is denied by a sandbox or permission prompt, say so and work in place.
+- If `git worktree add` is denied by a sandbox or permission prompt, say so; work in place only when nothing else shares the checkout, otherwise stop and report the blocker.
 - When the work is done, land it with finish-branch; commits, pushes, and PRs follow git-commit, git-push, and github-pr.

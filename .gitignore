@@ -1,7 +1,9 @@
 /*
-!.github
 !skills
 !agents
+!/*.md
+!/LICENSE
+!/package.json
 
 !.*
 .DS_Store

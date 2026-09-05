@@ -1,4 +1,5 @@
 {
+  "gitignore": true,
   "ignores": ["node_modules"],
   "config": {
     "MD013": false,

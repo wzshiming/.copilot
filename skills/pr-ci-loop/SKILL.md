@@ -6,25 +6,19 @@ argument-hint: "PR number and upstream repo"
 
 # PR CI Loop
 
-Don't run the project's test suites locally — the PR's CI is the source of truth.
+Once the PR is open, its CI is the merge gate: watch it instead of re-running the full suite locally after every push.
 
-Run this before any `git`/`gh` command (re-run in each new shell) so commands fail fast instead of hanging on prompts or pagers:
-
-```sh
-export GIT_TERMINAL_PROMPT=0 GH_PROMPT_DISABLED=1 GH_PAGER=cat GH_NO_UPDATE_NOTIFIER=1;
-```
-
-After creating the PR (or pushing new commits to it), watch the checks until they finish:
+After creating the PR (or pushing new commits to it), watch the checks until they finish — no pipe, so the exit code survives (non-zero on failure):
 
 ```sh
-gh pr checks <number> --repo <upstream> --watch --interval 30 2>&1 | tail -5
+gh pr checks <number> --repo <upstream> --watch --fail-fast --interval 30
 ```
 
 On a failure, pull the log instead of rerunning anything locally:
 
 ```sh
-gh pr checks <number> --repo <upstream>                                # failing check → run/job URL
+gh pr checks <number> --repo <upstream> | cat                          # failing check → run/job URL
 gh run view --job <job-id> --repo <upstream> --log-failed | tail -120  # failing tests + errors
 ```
 
-Diagnose from the log first; reproduce a single failing test locally only when the log isn't enough. Fix, commit per git-commit, and push the follow-up to the same branch (don't amend + force-push mid-review unless the repo convention asks for squashed commits) — CI restarts on its own — then watch again. If the fix invalidates anything the PR body claims, update it with `gh pr edit`.
+Diagnose from the log first; reproduce a single failing test locally only when the log isn't enough. Fix, commit per git-commit, and push the follow-up to the same branch (don't amend + force-push mid-review unless the repo convention asks for squashed commits) — CI restarts on its own — then watch again. After 3 fix-and-push rounds without a green run, stop pushing and report the log excerpt with your diagnosis instead. If the fix invalidates anything the PR body claims, update it with `gh pr edit <number> --repo <upstream> --body-file <file>`.

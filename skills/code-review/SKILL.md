@@ -8,16 +8,10 @@ argument-hint: "Say whether you are requesting a review or responding to feedbac
 
 Prepare reviews so they can be verified, and process feedback as technical claims to check — not orders to obey.
 
-## When to Use
-
-- Requesting a review before merge or handoff
-- Responding to review feedback
-- Disagreeing with a reviewer's suggestion
-
 ## Requesting
 
 - Self-review the diff first: walk every file and confirm each change serves the requirement; remove leftovers.
-- Run the full test suite and confirm green before asking for review.
+- Verify before asking (verification-before-completion): the tests the change touched are green; the full suite only for cross-cutting changes or when the review gates landing (finish-branch).
 - Give the reviewer the original requirements, acceptance criteria, and the changed-file list.
 
 ## Receiving

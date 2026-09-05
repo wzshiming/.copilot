@@ -8,12 +8,6 @@ argument-hint: "Describe the bug, failing test, or unexpected behavior"
 
 Find and fix the root cause through four ordered phases instead of patching the first symptom in sight.
 
-## When to Use
-
-- A bug, test failure, or unexpected behavior appears
-- Before proposing or applying any fix
-- A previous quick fix didn't stick
-
 ## Four Phases
 
 1. **Reproduce** — build a minimal, reliable reproduction. If you can't trigger the failure on demand, you can't verify a fix.

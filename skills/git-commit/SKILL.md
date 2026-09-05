@@ -6,18 +6,12 @@ argument-hint: "What changed and why; the repo's commit convention or DCO requir
 
 # Git Commit
 
-Commit one logical change with a minimal diff and a message that matches the repo's history.
-
-Run this before `git commit` (re-run in each new shell) so a commit without `-m`/`-F` fails fast instead of hanging in an editor:
-
-```sh
-export GIT_EDITOR=true;
-```
+Commit one logical change with a minimal diff and a message that matches the repo's history. Always pass the message with `-m`/`-F` — never let `git commit` open an editor.
 
 ## Pre-commit checks
 
 - Verify the change compiles / passes vet or lint BEFORE committing (trust the compiler, not stale IDE diagnostics)
-- Don't run test suites locally — the PR's CI is the source of truth; push and watch it per pr-ci-loop. Run a single test locally only to reproduce a CI failure the logs can't explain
+- Tests: run the ones the change touched (test-driven-development covers the loop); a commit never waits for a full local suite run — the PR's CI is the merge gate (pr-ci-loop) and finish-branch runs the suite once before landing
 - Check `git --no-pager diff` — the diff must contain **only** the fix: no drive-by reformatting, import reshuffling, or whitespace churn in untouched lines
 - Check `git status --short` — never commit unrelated files; stage specific paths, not `git add -A`
 

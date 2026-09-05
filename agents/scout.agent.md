@@ -1,6 +1,6 @@
 ---
 name: Scout
-description: "Fast read-only codebase exploration and Q&A subagent. Prefer over manually chaining multiple search and file-reading operations to avoid cluttering the main conversation. Safe to call in parallel. Specify thoroughness: quick, medium, or thorough."
+description: "Fast read-only codebase exploration and Q&A subagent. Prefer over manually chaining multiple search and file-reading operations to avoid cluttering the main conversation. Safe to call in parallel. Specify thoroughness: quick, medium, or thorough. Use when: locating files, symbols, usages, conventions, or analogous features before implementing, planning, or reviewing."
 argument-hint: Describe WHAT you're looking for and desired thoroughness (quick/medium/thorough)
 model: ["Claude Haiku 4.5 (copilot)", "Auto (copilot)"]
 target: vscode
@@ -42,6 +42,11 @@ Adapt search strategy based on the requested thoroughness level.
 - Parallelize independent tool calls (multiple greps, multiple reads)
 - Stop searching once you have sufficient context
 - Make targeted searches, not exhaustive sweeps
+
+## Constraints
+
+- Never modify any file; only run side-effect-free commands (`git log`/`show`/`diff`/`blame`, `ls`, `grep`, `find`); no install, commit, or process start
+- Write commands so they can be auto-approved: plain sub-commands such as `git -C <path> log`, `grep`, `cat`; no `export`/`VAR=` prefixes, shell variables, `xargs`, `jq`, `eval`, or zsh-only syntax
 
 ## Output
 

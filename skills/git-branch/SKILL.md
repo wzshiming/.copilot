@@ -19,8 +19,9 @@ If this checkout must stay untouched — it holds another session's dirty state,
 Fetch and branch from the latest default branch — `<remote>` is `upstream` in a fork layout, `origin` in your own repo:
 
 ```sh
-GIT_TERMINAL_PROMPT=0 git fetch <remote>   # fail fast instead of hanging on a credential prompt
-git checkout -b <branch> <remote>/<default-branch>
+git fetch <remote>
+# --no-track: a tracking upstream makes `git branch -d` refuse after a local merge (finish-branch)
+git checkout --no-track -b <branch> <remote>/<default-branch>
 ```
 
 ## Naming

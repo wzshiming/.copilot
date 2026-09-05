@@ -8,12 +8,6 @@ argument-hint: "Describe the feature or bugfix to implement test-first"
 
 Write a failing test before any production code, make it pass with the least code possible, then refactor — never the other way around.
 
-## When to Use
-
-- Implementing any feature or bugfix that changes behavior
-- Writing or extending tests for code under development
-- Tempted to write the code first and backfill tests later
-
 ## Iron Law
 
 No production code without a failing test written first. If code exists before its test, delete it and restart — do not keep it around "for reference".
@@ -23,7 +17,7 @@ No production code without a failing test written first. If code exists before i
 1. **RED** — write one minimal test for the next small behavior.
 2. Run it and confirm it fails **because the feature is missing** — not from a typo or setup error. If it passes immediately, it is testing existing behavior; rewrite it.
 3. **GREEN** — write the least production code that makes the test pass.
-4. Run the full suite: everything green, output clean.
+4. Run the tests for the code you touched: everything green, output clean (the full suite runs once before landing, per finish-branch).
 5. **REFACTOR** — clean up while staying green; add no new behavior.
 6. Pick the next behavior and repeat.
 

@@ -8,12 +8,6 @@ argument-hint: "State the claim to verify and the commands that would prove it"
 
 Never claim "done", "fixed", or "passing" without having just run the verifying command and read its output.
 
-## When to Use
-
-- About to report work as complete, fixed, or passing
-- Before committing, pushing, or handing off to a reviewer
-- After any change that could affect tests, build, or lint
-
 ## Core Rule
 
 Evidence before assertions. Expectation is not evidence: "it should work" and "the change looks right" prove nothing — only fresh command output does.

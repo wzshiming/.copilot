@@ -8,12 +8,6 @@ argument-hint: "The bug or feature to report, the upstream repo, and whether a P
 
 Decide whether an Issue is needed at all, then fill the template, create it, link it, and verify the result.
 
-Run this before any `gh` command (re-run in each new shell) so commands fail fast instead of hanging on prompts or pagers:
-
-```sh
-export GH_PROMPT_DISABLED=1 GH_PAGER=cat GH_NO_UPDATE_NOTIFIER=1;
-```
-
 ## Decide whether an Issue is needed
 
 A PR does not always need a companion Issue. Create one only when at least one applies:
@@ -25,7 +19,7 @@ A PR does not always need a companion Issue. Create one only when at least one a
 
 Small self-explanatory fixes (typo, docs, obvious one-liner) usually go as a standalone PR — skip the Issue.
 
-Only create a new Issue if a duplicate search comes up empty — an existing open Issue should be referenced with `Fixes #<N>` instead:
+Only create a new Issue if a duplicate search comes up empty — an existing open Issue should be referenced instead: `Fixes #<N>` when the PR fully resolves it, `Part of #<N>` when it doesn't:
 
 ```sh
 gh search issues --repo <upstream> "<error keywords>" | head
@@ -74,7 +68,7 @@ Beyond the type basics, cover these when they apply — fold each into the match
 Applies to the body and to any follow-up comment the user asks for.
 
 - First person, plain and direct: open with one line of how you hit it ("I hit this while …"), not a lecture about the codebase; write in the project's language (usually English) even when the conversation isn't
-- Match the register of recent Issues in the repo (`gh issue list --repo <upstream> --state all --limit 5`) — mirror their length and tone
+- Match the register of recent Issues in the repo (`gh issue list --repo <upstream> --state all --limit 5 | cat`) — mirror their length and tone
 - Paste only real output: exact error text, versions, commands you actually ran; never invent repro steps or logs, and say so if you didn't run something
 - The Issue states the problem or use case; root cause and fix approach belong in the PR — the two bodies shouldn't read as copies
 - No bold, emoji, or headings the template didn't ask for; no filler openers ("This issue aims to…"); optional sections get "N/A", not invented content
@@ -96,5 +90,5 @@ gh issue create --repo <upstream> --title "<title>" \
 ## Verify and report
 
 - Confirm the URL and echo it to the user
-- Reread the body once as a stranger would — if anything sounds templated or overstated, edit it down (`gh issue edit <num> --repo <upstream>`)
+- Reread the body once as a stranger would — if anything sounds templated or overstated, edit it down (`gh issue edit <num> --repo <upstream> --body-file <file>`)
 - Stop after creating; don't post extra comments

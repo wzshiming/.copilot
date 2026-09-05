@@ -4,7 +4,7 @@ Personal agent and skills repository — Markdown docs only, no application code
 
 ## Structure
 
-Only `.github/`, `skills/`, `agents/`, and dotfiles are tracked (plus root docs and `package.json`); everything else at the root is local runtime state excluded by the `.gitignore` whitelist.
+Only `.github/`, `skills/`, `agents/`, dotfiles, root Markdown docs, `LICENSE`, and `package.json` are tracked; everything else at the root is local runtime state excluded by the `.gitignore` whitelist.
 
 ### Skills
 
@@ -26,5 +26,7 @@ Only `.github/`, `skills/`, `agents/`, and dotfiles are tracked (plus root docs 
 
 ## Conventions
 
-- Keep docs minimal: SKILL.md holds only the workflow and its commands; agent bodies hold only orchestration and necessary info.
-- Write descriptions with concrete "Use when:" trigger phrases — they are the discovery surface.
+- Keep docs minimal: SKILL.md holds only the workflow and its commands; agent bodies hold only orchestration and necessary info — never rules the harness base prompt already states.
+- Skills and model-invocable agents (no `disable-model-invocation: true`) carry concrete "Use when:" trigger phrases in `description` — that is the discovery surface. Keep model names out of descriptions; they live in `model:` and the body.
+- Keep shell snippets auto-approvable and self-contained: no `export …;` preambles or `VAR=… cmd` prefixes, no zsh-only syntax; shell variables only in steps that need approval anyway. Guards are flags, not environment: `-m`/`-F` and `--no-edit`/`--ff-only` instead of `GIT_EDITOR`, `-c core.editor=true rebase --continue`, `git --no-pager`, a flag for every value `gh` would prompt for, and a pipe (`| cat` or a filter) on `gh` output (it pages whenever the shell sets `PAGER`). Credential prompts need no guard: agent terminals carry VS Code's `GIT_ASKPASS` or `GIT_TERMINAL_PROMPT=0`.
+- Testing policy across skills: baseline once per worktree (git-worktree), tests for the change while implementing (test-driven-development), no full-suite requirement per commit (git-commit), the PR's CI as the merge gate (pr-ci-loop), one full run on the exact tree before landing (finish-branch).
