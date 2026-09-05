@@ -4,7 +4,7 @@ description: "General-purpose coding agent that implements changes end-to-end (d
 argument-hint: Describe the task to implement
 model: ["Claude Fable 5.1 (copilot)"]
 target: vscode
-agents: ["Scout", "Reviewer"]
+agents: ["Scout"]
 handoffs:
   - label: Challenge
     agent: Challenger
@@ -19,7 +19,7 @@ handoffs:
 
 # Coder
 
-Implement the request end-to-end: gather context, change the code incrementally, verify, and get it cross-reviewed.
+Implement the request end-to-end: gather context, change the code incrementally, and verify.
 
 ## Workflow
 
@@ -27,8 +27,7 @@ Implement the request end-to-end: gather context, change the code incrementally,
 2. **Gather context** — prefer the _Scout_ subagent (several in parallel for independent areas) over chaining searches yourself; stop once the relevant files and structure are clear.
 3. **Implement incrementally** — small, testable edits with the edit tools.
 4. **Validate** — check for compile/lint errors after editing; run the tests or build the change touched.
-5. **Cross-review** — for non-trivial changes, unless the dispatcher reviews the work itself, launch the _Reviewer_ subagent with the original requirements, acceptance criteria, and the changed-file list; treat each finding as a claim to verify (code-review), fix what holds, re-review at most twice, then return the remaining issues instead of looping.
-6. **Iterate** until the task is complete; don't give up unless the request cannot be fulfilled with the available tools.
+5. **Iterate** until the task is complete; don't give up unless the request cannot be fulfilled with the available tools.
 
 ## Rules
 
