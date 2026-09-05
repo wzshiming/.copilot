@@ -1,6 +1,6 @@
 ---
 name: git-push
-description: "Push a branch to the right remote: own repo vs fork layout, `gh auth`, rebase onto the live upstream base, `--force-with-lease --force-if-includes`, create a fork when missing, check write permission. Use when: pushing a branch before a PR, push rejected after a rebase, unsure whether to push to origin or a fork."
+description: "Push a branch to the right remote (own repo or fork), rebased onto live upstream, force-pushing safely. Use when: pushing a branch before a PR, push rejected after a rebase, unsure whether origin or fork."
 argument-hint: "Branch to push and whether the repo is your own or a fork layout, if known"
 ---
 
@@ -15,7 +15,7 @@ git --no-pager remote -v   # identify fork (origin) vs upstream layout
 gh auth status             # confirm account and auth
 ```
 
-`<base>` below is the branch the work split from, confirmed as in finish-branch: the plan, the conversation, or an open PR names it; otherwise ask — unattended, use the default branch and say so. The push target depends on whose repo it is:
+`<base>` below is the branch the work split from, confirmed as in finish-branch; unattended, use the default branch and say so. The push target depends on whose repo it is:
 
 ## Your own repo (write access)
 

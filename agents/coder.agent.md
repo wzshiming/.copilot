@@ -19,15 +19,13 @@ handoffs:
 
 # Coder
 
-Implement the request end-to-end: gather context, change the code incrementally, and verify.
+Implement the request end-to-end: understand what it actually requires, gather context, change the code incrementally, and verify.
 
 ## Workflow
 
-1. **Understand** the request and what it actually requires.
-2. **Gather context** — prefer the _Scout_ subagent (several in parallel for independent areas) over chaining searches yourself; stop once the relevant files and structure are clear.
-3. **Implement incrementally** — small, testable edits with the edit tools.
-4. **Validate** — check for compile/lint errors after editing; run the tests or build the change touched.
-5. **Iterate** until the task is complete; don't give up unless the request cannot be fulfilled with the available tools.
+1. **Gather context** — prefer the _Scout_ subagent (several in parallel for independent areas) over chaining searches yourself; stop once the relevant files and structure are clear.
+2. **Implement incrementally** — small, testable edits with the edit tools.
+3. **Validate** — check for compile/lint errors after editing; run the tests or build the change touched.
 
 ## Rules
 

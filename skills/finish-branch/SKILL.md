@@ -1,6 +1,6 @@
 ---
 name: finish-branch
-description: "Land a finished branch — push and open a PR, merge locally, or keep it as-is — then return to the main root on its base branch and remove the worktree we created; discarding is never offered unprompted. Use when: implementation on a branch or worktree is complete and tests pass, deciding how to land agent work, cleaning up a task worktree after its PR merged."
+description: "Land a finished branch (PR, fast-forward merge, or keep), return main root to base, remove worktree; discarding never offered. Use when: implementation complete and tests pass, deciding how to land agent work, post-merge worktree cleanup."
 argument-hint: "Branch or worktree to finish, its base branch if known, and whether a PR is wanted"
 ---
 
@@ -26,7 +26,11 @@ Integrate a finished branch the way the user chooses, then leave the main root o
 
 4. **Choose** — present exactly these three options and wait for the answer:
    1. Push and open a PR via git-commit → git-push → github-pr; keep the worktree while the PR is open, and clean up as soon as `gh pr view <number> --repo <upstream> --json state -q .state | cat` prints `MERGED`.
-   2. Merge locally, fast-forward only, so the landed tree is exactly the verified one. The main root must be clean (`git -C <main-root> status --porcelain` prints nothing) and on `<base>`: when the branch is checked out in the main root itself, `git switch <base>` gets it there; a linked worktree's main root belongs to other sessions — if it is dirty or on another branch, stop and ask instead of switching it. Then `git -C <main-root> pull --ff-only` (skip when `<base>` has no upstream) and `git -C <main-root> merge --ff-only <branch>`. A refused merge means `<base>` moved since the split: rebase the branch onto `<base>` — in its worktree, or in the main root after `git switch <branch>` — resolving conflicts as in git-push, re-run the suite on the rebased tree, return the main root to `<base>`, and retry. Nothing was pushed, so any red result is fully recoverable. Then clean up.
+   2. Merge locally, fast-forward only, so the landed tree is exactly the verified one:
+      - Precondition: the main root is clean (`git -C <main-root> status --porcelain` prints nothing) and on `<base>`. When the branch is checked out in the main root itself, `git switch <base>` gets it there; a linked worktree's main root belongs to other sessions — dirty or on another branch ⇒ stop and ask instead of switching it.
+      - `git -C <main-root> pull --ff-only` (skip when `<base>` has no upstream), then `git -C <main-root> merge --ff-only <branch>`.
+      - Refused merge ⇒ `<base>` moved since the split: rebase the branch onto `<base>` — in its worktree, or in the main root after `git switch <branch>` — resolving conflicts as in git-push, re-run the suite on the rebased tree, return the main root to `<base>`, and retry.
+      - Nothing was pushed, so any red result is fully recoverable. Then clean up.
    3. Keep as-is: report branch and path.
 
    Discarding is never offered. Only when the user asks for it explicitly, show branch, commits, and path and require the typed word `discard`. Unattended (subagent or Autopilot): option 1 if the task asked for a PR, otherwise option 3 — and report which.

@@ -1,6 +1,6 @@
 ---
 name: git-branch
-description: "Start a change on a correctly named branch off the latest default branch: starting-state check, fetch, `checkout -b`, naming convention (type prefix or `issue/<N>`). Use when: starting a fix or feature in a repo, naming a branch, branching off upstream in a fork layout."
+description: "Start a change on a correctly named branch off the latest default branch. Use when: starting a fix or feature in a repo, naming a branch, branching off upstream in a fork layout."
 argument-hint: "What the change is and the issue number if there is one; remote and default branch if not standard"
 ---
 

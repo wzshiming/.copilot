@@ -1,6 +1,6 @@
 ---
 name: test-driven-development
-description: "Discipline for writing code test-first: one failing test before any production code, RED-GREEN-REFACTOR loop, delete code written before its test. Use when: implementing a feature or bugfix, writing tests, tempted to write code first and test after."
+description: "Test-first discipline: one failing test before any production code, then the RED-GREEN-REFACTOR loop. Use when: implementing a feature or bugfix, writing tests, tempted to write code first and test after."
 argument-hint: "Describe the feature or bugfix to implement test-first"
 ---
 

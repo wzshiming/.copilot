@@ -1,6 +1,6 @@
 ---
 name: verification-before-completion
-description: "Evidence before assertions: actually run the verifying commands (tests/build/lint/repro steps) and read the output before declaring success. Use when: about to claim work is complete, fixed, or passing, before committing or handing off."
+description: "Evidence before assertions: run the verifying commands and read the output before declaring success. Use when: about to claim work is complete, fixed, or passing, before committing or handing off."
 argument-hint: "State the claim to verify and the commands that would prove it"
 ---
 

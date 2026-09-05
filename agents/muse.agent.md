@@ -1,6 +1,6 @@
 ---
 name: Muse
-description: "Single-model divergent ideation subagent used by Ideator for multi-model brainstorming: generates many genuinely distinct ideas by applying the shared technique lenses in full; quantity over polish, judgment deferred; read-only. Use when: dispatched by Ideator with an explicit model override and the shared brief."
+description: "Ideator's single-model divergent ideation subagent: many genuinely distinct ideas via the shared technique lenses, quantity over polish, judgment deferred, read-only. Use when: dispatched by Ideator with an explicit model override and the shared brief."
 argument-hint: Provide the problem brief, constraints, and the shared technique lenses
 model: ["Auto (copilot)"]
 target: vscode

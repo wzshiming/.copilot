@@ -1,6 +1,6 @@
 ---
 name: git-commit
-description: "Commit one logical change with a minimal diff and a message matching the repo's history: pre-commit build/lint check, stage specific paths, convention from `git log`, DCO sign-off. Use when: committing a fix, writing a commit message, deciding what to stage."
+description: "Commit one logical change with a minimal diff and a message matching the repo's history. Use when: committing a fix, writing a commit message, deciding what to stage."
 argument-hint: "What changed and why; the repo's commit convention or DCO requirement if already known"
 ---
 

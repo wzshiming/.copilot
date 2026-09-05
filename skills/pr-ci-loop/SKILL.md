@@ -1,6 +1,6 @@
 ---
 name: pr-ci-loop
-description: "Use the PR's CI as the test run: watch checks after each push, pull the failing job log, diagnose from the log, push a follow-up fix, repeat. Use when: a PR's checks are failing, waiting on CI after a push, deciding whether to reproduce a CI failure locally."
+description: "Use the PR's CI as the test run: watch, pull failing logs, fix, repeat. Use when: a PR's checks are failing, waiting on CI after a push, deciding whether to reproduce a CI failure locally."
 argument-hint: "PR number and upstream repo"
 ---
 

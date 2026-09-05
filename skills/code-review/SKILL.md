@@ -1,6 +1,6 @@
 ---
 name: code-review
-description: "Both sides of code review: self-review the diff and run tests before requesting; treat every piece of feedback as a claim to verify before implementing. Use when: requesting a review before merge/handoff, responding to review feedback, disagreeing with a reviewer."
+description: "Both sides of code review: self-review the diff and run tests before requesting; treat feedback as claims to verify. Use when: requesting a review before merge/handoff, responding to review feedback, disagreeing with a reviewer."
 argument-hint: "Say whether you are requesting a review or responding to feedback, plus context"
 ---
 
