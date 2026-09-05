@@ -18,7 +18,7 @@ No production code without a failing test written first. If code exists before i
 2. Run it and confirm it fails **because the feature is missing** — not from a typo or setup error. If it passes immediately, it is testing existing behavior; rewrite it.
 3. **GREEN** — write the least production code that makes the test pass.
 4. Run the tests for the code you touched: everything green, output clean (the full suite runs once before landing, per finish-branch).
-5. **REFACTOR** — clean up while staying green; add no new behavior.
+5. **REFACTOR** — clean up while staying green; add no new behavior (refactoring covers the steps).
 6. Pick the next behavior and repeat.
 
 ## Good Tests
