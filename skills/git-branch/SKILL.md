@@ -16,15 +16,12 @@ git rev-parse --path-format=absolute --show-toplevel   # <this-checkout>
 git worktree list                                       # first line: <main-root>
 ```
 
-Note the current branch and any dirty files. `<this-checkout>` ≠ `<main-root>` ⇒ already in a linked worktree: if it is this task's own (created by the harness for this session, or the path named in your dispatch), skip creation and report its path and branch; to isolate further tasks from inside it (parallel dispatches), use the worktree command below, which works from any checkout.
+Note the current branch and any dirty files. `<this-checkout>` ≠ `<main-root>` ⇒ already in a linked worktree: if it is this task's own (the path named in your dispatch), skip creation and report its path and branch; to isolate further tasks from inside it (parallel dispatches), use the worktree command below, which works from any checkout.
 
 ## Where
 
 - **In place** — the default when the checkout is yours alone.
-- **Own worktree** — when the checkout must stay untouched: it holds another session's dirty state, the work runs in parallel with other tasks or Coder subagents, or a plan is about to be executed. Prefer the harness's native option — user-side actions an agent mid-session cannot trigger: tell the user, or fall back to git:
-  - Copilot CLI: `/worktree <branch>` (or `/worktree <task text>` to name the branch from the task), `/new-worktree <branch>` for a fresh conversation, `copilot -w <name>` at startup — the session moves into the worktree.
-  - VS Code Agents window: tick **New Worktree** and choose the base branch when starting the session (not available in the Chat view or with the Local harness).
-  - VS Code Chat view, Local harness, dispatched subagent: no native option — `git worktree add` below.
+- **Own worktree** — when the checkout must stay untouched: it holds another session's dirty state, the work runs in parallel with other tasks or Coder subagents, or a plan is about to be executed. Created with `git worktree add` below.
 
 ## Naming
 

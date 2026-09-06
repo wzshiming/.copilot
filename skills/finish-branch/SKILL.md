@@ -20,7 +20,7 @@ Integrate a finished branch the way the user chooses, then leave the main root o
    git branch --show-current
    ```
 
-   `<worktree-path>` ≠ `<main-root>` ⇒ linked worktree, and the main root belongs to other sessions. Empty branch ⇒ detached HEAD (externally managed): name the work first with `git switch -c <branch>`, then continue as a normal branch.
+   `<worktree-path>` ≠ `<main-root>` ⇒ linked worktree, and the main root belongs to other sessions. Empty branch ⇒ detached HEAD: name the work first with `git switch -c <branch>`, then continue as a normal branch.
 
 3. **Base** — the plan, the conversation, or an open PR names it; otherwise ask "this split from `<default-branch>` — correct?". The tracking upstream is not the base. Never merge into a guessed base.
 
@@ -35,7 +35,7 @@ Integrate a finished branch the way the user chooses, then leave the main root o
 
    Discarding is never offered. Only when the user asks for it explicitly, show branch, commits, and path and require the typed word `discard`. Unattended (subagent or Autopilot): option 1 if the task asked for a PR, otherwise option 3 — and report which.
 
-5. **Clean up** — mandatory after option 2, a merged PR, or a confirmed discard; only for worktrees under `.worktrees/` (ours) — worktrees created by a harness (VS Code sessions, Copilot app, `copilot -w`) are removed by that harness. Leave the main root on `<base>`, remove the worktree folder and the `.worktrees/` directories it leaves empty (its `<prefix>/` dir, and `.worktrees/` itself after the last worktree), and delete the branch, in this order; `cd` out of the worktree first — its directory disappears under you. After a merged PR, `git -C <main-root> pull --ff-only` first so `<base>` holds the merge.
+5. **Clean up** — mandatory after option 2, a merged PR, or a confirmed discard. Leave the main root on `<base>`, remove the worktree folder and the `.worktrees/` directories it leaves empty (its `<prefix>/` dir, and `.worktrees/` itself after the last worktree), and delete the branch, in this order; `cd` out of the worktree first — its directory disappears under you. After a merged PR, `git -C <main-root> pull --ff-only` first so `<base>` holds the merge.
 
    ```sh
    cd "<main-root>"
