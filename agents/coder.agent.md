@@ -2,7 +2,7 @@
 name: Coder
 description: "General-purpose coding agent that implements changes end-to-end (default Agent equivalent). Use when: implementing a feature or fix directly, executing an approved plan without orchestration, small follow-up changes after a review."
 argument-hint: Describe the task to implement
-model: ["Claude Fable 5.1 (copilot)"]
+model: ["GPT-6 Astra (copilot)"]
 target: vscode
 agents: ["Scout"]
 handoffs:

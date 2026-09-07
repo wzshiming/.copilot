@@ -2,7 +2,7 @@
 name: Reviewer
 description: "Cross-review agent on a different model family than the implementer: verifies each acceptance criterion, runs read-only checks, returns Pass/Fail + issue list. Use when: reviewing implementation results, acceptance verification, cross-checking an implementer's work."
 argument-hint: Provide requirements, acceptance criteria, and changed files to verify
-model: ["GPT-6 Astra (copilot)", "Kimi K3 (copilot)"]
+model: ["Claude Fable 5.1 (copilot)"]
 target: vscode
 user-invocable: false
 tools:
