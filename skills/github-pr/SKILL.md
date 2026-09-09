@@ -1,6 +1,6 @@
 ---
 name: github-pr
-description: "Open a pull request the way the repo expects: faithful template, cross-fork creation, Issue linking, verification. Use when: creating a PR from a pushed branch, opening a cross-fork PR, linking a PR to an Issue."
+description: "Open a pull request the way the repo expects: faithful template, cross-fork creation, Issue linking, verification. Use when: creating a PR from a pushed branch, linking a PR to an Issue, responding to reviewer feedback."
 argument-hint: "Branch, upstream repo, related Issue number if any, and whether the work is still WIP"
 ---
 
@@ -59,3 +59,10 @@ gh pr create --repo <upstream> --head <fork-owner>:<branch> --base <base> \
 - If the body says `Fixes #N`, `gh pr view <num> --repo <upstream> --json closingIssuesReferences --jq '.closingIssuesReferences[].number' | cat` must print N
 - Reread the body as a stranger would; edit anything templated or overstated down: `gh pr edit <num> --repo <upstream> --body-file <file>`
 - Stop after creating; don't post extra comments on your own PR
+
+## Respond to review
+
+- Treat every comment as a technical claim to verify — check it against the code before implementing
+- If feedback is wrong, push back with evidence; never perform agreement you don't have
+- If a comment is unclear, ask instead of guessing intent
+- Address items one by one, stating for each whether it was adopted or rejected and why; adopted changes go out as follow-up commits on the same branch (pr-ci-loop)

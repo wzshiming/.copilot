@@ -10,7 +10,7 @@ Integrate a finished branch the way the user chooses, then leave the main root o
 
 ## Steps
 
-1. **Verify** — run the full suite on the exact tree you are about to integrate (verification-before-completion). Red: report and stop — the options come after green.
+1. **Verify** — run the full suite on the exact tree you are about to integrate. Red: report and stop — the options come after green.
 
 2. **Detect** — before any `cd`, capture where you are:
 
