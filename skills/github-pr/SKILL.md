@@ -48,7 +48,7 @@ gh pr create --repo <upstream> --head <fork-owner>:<branch> --base <base> \
 - Never push to upstream; the PR goes cross-fork via `--head`
 - Own repo with write access (pushed directly, per git-push): drop `--repo` and `--head`
 - Title: imperative, ≤ ~70 chars, same convention as the commit subjects (`git --no-pager log --oneline -10`)
-- Unfinished work: create anyway to use CI as the test run — `WIP:` title prefix, removed with `gh pr edit --title` when ready
+- Unfinished work: create anyway to use CI as the test run — `[WIP]` title prefix, removed with `gh pr edit --title` once the work is complete
 - `Fixes #<N>` only for an Issue the PR fully resolves (auto-closes on merge); partial or context → `Part of #<N>` / `Related to #<N>`; no Issue → drop any `Fixes` placeholder
 - Don't self-assign, @-mention or request reviewers, or add milestone/project — the maintainers' call
 
