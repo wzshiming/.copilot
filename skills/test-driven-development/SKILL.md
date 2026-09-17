@@ -28,6 +28,6 @@ No production code without a failing test written first. If code exists before i
 - Exercise real code, not mocks of the thing under test.
 - Assert behavior, not implementation details.
 
-## Exceptions (require user consent)
+## Exceptions
 
-Throwaway prototypes, generated code, and pure configuration may skip TDD — only after the user explicitly agrees.
+Throwaway prototypes, generated code, and pure configuration may skip TDD: attended, ask the user once; unattended, record the skip in your report and proceed.

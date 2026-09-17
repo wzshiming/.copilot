@@ -22,7 +22,7 @@ Integrate a finished branch the way the user chooses, then leave the main root o
 
    `<worktree-path>` ≠ `<main-root>` ⇒ linked worktree, and the main root belongs to other sessions. Empty branch ⇒ detached HEAD: name the work first with `git switch -c <branch>`, then continue as a normal branch.
 
-3. **Base** — the plan, the conversation, or an open PR names it; otherwise ask "this split from `<default-branch>` — correct?". The tracking upstream is not the base. Never merge into a guessed base.
+3. **Base** — use the base named in the plan, conversation, or an open PR. If none is known, ask "this split from `<default-branch>` — correct?"; unattended, assume `<default-branch>` only for options 1 and 3 and say so. The tracking upstream is not the base. Never merge into a guessed base.
 
 4. **Choose** — present exactly these three options and wait for the answer:
    1. Push and open a PR via git-commit → git-push → github-pr; keep the worktree while the PR is open, and clean up as soon as `gh pr view <number> --repo <upstream> --json state -q .state | cat` prints `MERGED`.

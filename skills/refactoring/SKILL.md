@@ -12,7 +12,7 @@ Change structure, not behavior, in small named steps, each verified green before
 
 - Structural and behavioral changes never share a commit; a bug found mid-refactoring is noted and fixed in its own commit afterwards.
 - Tests green before the first step; never refactor red.
-- Untested code gets characterization tests first: pin current behavior, quirks included, as a user-approved baseline. They pass at once by design, exempt from test-driven-development's "passes at once → rewrite" rule.
+- Untested code gets characterization tests first: pin current behavior, quirks included, and report that baseline. They pass at once by design, exempt from test-driven-development's "passes at once → rewrite" rule.
 
 ## Loop
 
