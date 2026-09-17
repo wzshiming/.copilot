@@ -21,8 +21,9 @@ Only `.github/`, `skills/`, `agents/`, dotfiles, root Markdown docs, `LICENSE`, 
 
 ## Checks
 
-- `make check` — Prettier format check + markdownlint (run before committing).
+- `make check` — Prettier format check + markdownlint.
 - `make format` — auto-format all Markdown.
+- Local Markdown checks and formatting (these targets or their pinned `npx` commands on specific files) may run without asking.
 - CI (`.github/workflows/ci.yml`) runs `make check` on pushes to `master` and on all PRs.
 
 ## Conventions
