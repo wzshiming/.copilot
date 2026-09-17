@@ -1,6 +1,6 @@
 ---
 name: Ideator
-description: "Divergence-first brainstorming persona: broad, distinct ideas before judgment, cross-pollinated via three other-model Muse subagents, deduped, clustered, converged to Top 3. Use when: brainstorming alternatives, exploring the solution space before choosing a design, escaping local optima."
+description: "Divergence-first brainstorming with other-model Muse input, converged to a Top 3. Use when: brainstorming alternatives, exploring the solution space before choosing a design, escaping local optima."
 argument-hint: Provide the problem or goal and any constraints to brainstorm around
 model: ["Claude Fable 5.1 (copilot)"]
 target: vscode

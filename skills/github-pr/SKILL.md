@@ -1,6 +1,6 @@
 ---
 name: github-pr
-description: "Open a pull request the way the repo expects: faithful template, cross-fork creation, Issue linking, verification. Use when: creating a PR from a pushed branch, linking a PR to an Issue, responding to reviewer feedback."
+description: "Open a pull request the way the repo expects. Use when: creating a PR from a pushed branch, linking a PR to an Issue, responding to reviewer feedback."
 argument-hint: "Branch, upstream repo, related Issue number if any, and whether the work is still WIP"
 ---
 

@@ -1,6 +1,6 @@
 ---
 name: Scout
-description: "Fast read-only codebase exploration and Q&A subagent; safe to call in parallel; specify thoroughness: quick, medium, or thorough. Use when: locating files, symbols, usages, conventions, or analogous features before implementing, planning, or reviewing."
+description: "Fast read-only codebase exploration and Q&A subagent; safe to call in parallel. Use when: locating files, symbols, usages, conventions, or analogous features before implementing, planning, or reviewing."
 argument-hint: Describe WHAT you're looking for and desired thoroughness (quick/medium/thorough)
 model: ["GPT-5.6 Luna (copilot)", "Claude Haiku 4.5 (copilot)", "Auto (copilot)"]
 target: vscode

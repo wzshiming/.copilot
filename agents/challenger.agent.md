@@ -1,6 +1,6 @@
 ---
 name: Challenger
-description: "Adversarial rebuttal reviewer: necessity audit, counterexamples, cross-examination by three other-model Examiner subagents, then adjudication. Use when: high-stakes or escalated review after repeated Reviewer failures, deciding whether outputs are necessary, challenging a plan or idea set."
+description: "Adversarial reviewer that cross-examines via other-model Examiners and returns Accept/Reject. Use when: high-stakes or escalated review after repeated Reviewer failures, deciding whether outputs are necessary, challenging a plan or idea set."
 argument-hint: Provide requirements and the review target (changed files/artifacts) to challenge
 model: ["Claude Fable 5.1 (copilot)"]
 target: vscode

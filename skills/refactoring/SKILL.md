@@ -1,6 +1,6 @@
 ---
 name: refactoring
-description: "Behavior-preserving restructuring in small green-to-green steps, with structural and behavioral changes committed separately. Use when: asked to refactor or clean up code, code structure makes a change hard, the REFACTOR step of TDD."
+description: "Behavior-preserving restructuring in small green-to-green steps. Use when: asked to refactor or clean up code, code structure makes a change hard, the REFACTOR step of TDD."
 argument-hint: "Name the code to restructure and the smell or blocked change"
 ---
 

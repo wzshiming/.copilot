@@ -1,6 +1,6 @@
 ---
 name: Examiner
-description: "Single-model adversarial examination subagent: challenges the necessity of each artifact, hunts counterexamples, read-only. Use when: dispatched by Challenger with an explicit model override to independently examine a review target."
+description: "Single-model adversarial examination subagent, read-only. Use when: dispatched by Challenger with an explicit model override to independently examine a review target."
 argument-hint: Provide requirements, the review target (changed files/artifacts), and the shared rubric
 model: ["Auto (copilot)"]
 target: vscode

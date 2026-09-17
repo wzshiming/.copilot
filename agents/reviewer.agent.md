@@ -1,6 +1,6 @@
 ---
 name: Reviewer
-description: "Cross-review agent on a different model family than the implementer: verifies each acceptance criterion, runs read-only checks, returns Pass/Fail + issue list. Use when: reviewing implementation results, acceptance verification, cross-checking an implementer's work."
+description: "Cross-reviewer from another model family, returning Pass/Fail against the acceptance criteria. Use when: reviewing implementation results, acceptance verification, cross-checking an implementer's work."
 argument-hint: Provide requirements, acceptance criteria, and changed files to verify
 model: ["GPT-6 Astra (copilot)"]
 target: vscode

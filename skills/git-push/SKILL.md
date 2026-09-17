@@ -1,6 +1,6 @@
 ---
 name: git-push
-description: "Push a branch to the right remote (own repo or fork), rebased onto live upstream, force-pushing safely. Use when: pushing a branch before a PR, push rejected after a rebase, unsure whether origin or fork."
+description: "Push a branch to the remote a PR can open from (own repo or fork). Use when: pushing a branch before a PR, push rejected after a rebase, unsure whether origin or fork."
 argument-hint: "Branch to push and whether the repo is your own or a fork layout, if known"
 ---
 

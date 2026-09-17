@@ -1,6 +1,6 @@
 ---
 name: finish-branch
-description: "Land a finished branch (PR, fast-forward merge, or keep), return main root to base, remove worktree; discarding never offered. Use when: implementation complete and tests pass, deciding how to land agent work, post-merge worktree cleanup."
+description: "Land a finished branch (PR, fast-forward merge, or keep) and remove its worktree. Use when: implementation complete and tests pass, deciding how to land agent work, post-merge worktree cleanup."
 argument-hint: "Branch or worktree to finish, its base branch if known, and whether a PR is wanted"
 ---
 

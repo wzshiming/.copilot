@@ -1,6 +1,6 @@
 ---
 name: git-branch
-description: "Start a change on a correctly named branch off the latest default branch, in place or in its own worktree. Use when: starting a fix or feature, naming a branch, isolating parallel sessions or subagents."
+description: "Start a correctly named branch off the latest default branch, in place or in its own worktree. Use when: starting a fix or feature, naming a branch, isolating parallel sessions or subagents."
 argument-hint: "What the change is and the issue number if there is one; remote and default branch if not standard; whether this checkout must stay untouched"
 ---
 
