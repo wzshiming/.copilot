@@ -37,10 +37,7 @@ gh pr edit <num> --repo <upstream> --body-file <updated-body>
 
 Templates live in `.github/ISSUE_TEMPLATE/*.md` and `*.yml` — pick the matching type (bug/feature); check `config.yml` for `blank_issues_enabled`. Read the template in full first.
 
-- Keep every section heading; never drop or reorder sections
-- Delete HTML comments (`<!-- ... -->`); replace placeholders with real content
-- Tick checklist items (`- [ ]`) actually done; leave the rest unticked
-- No template: write a plain body. Faithful ≠ verbose — a sentence or two per section is normal
+Keep every section heading in order; delete HTML comments (`<!-- ... -->`) and replace placeholders with real content; tick only the checklist items (`- [ ]`) actually done and leave the rest unticked. No template: write a plain body. Faithful ≠ verbose — a sentence or two per section is normal.
 
 Body by type — **bug**: what is broken, user-visible impact, how to reproduce (versions, exact commands, actual vs expected); **feature**: motivation (the concrete use case it unblocks), proposed behavior, alternatives/workarounds considered.
 
