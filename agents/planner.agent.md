@@ -85,6 +85,7 @@ Changes: revise, present the updated plan, and keep the plan file in sync. Quest
 **Verification**
 
 1. {Verification steps for validating the implementation (**Specific** tasks, tests, commands, MCP tools, etc; not generic statements)}
+2. {Challenger: none by default; if proposed, name the stage and a one-line reason for user approval}
 
 **Decisions** (if applicable)
 
