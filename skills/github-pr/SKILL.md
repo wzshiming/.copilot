@@ -1,6 +1,6 @@
 ---
 name: github-pr
-description: "Open a pull request the way the repo expects: faithful template, cross-fork creation, Issue linking, verification. Use when: creating a PR from a pushed branch, linking a PR to an Issue, responding to reviewer feedback."
+description: "Open a pull request the way the repo expects. Use when: creating a PR from a pushed branch, linking a PR to an Issue, responding to reviewer feedback."
 argument-hint: "Branch, upstream repo, related Issue number if any, and whether the work is still WIP"
 ---
 
@@ -18,11 +18,7 @@ gh search prs --repo <upstream> --state open "<error keywords>" | head
 
 Templates live in `.github/PULL_REQUEST_TEMPLATE.md`, `.github/PULL_REQUEST_TEMPLATE/*.md`, `docs/pull_request_template.md`, or the repo root. Read the template in full first.
 
-- Keep every section heading; never drop or reorder sections
-- Delete HTML comments (`<!-- ... -->`); replace placeholders with real content
-- Tick checklist items (`- [ ]`) actually done; leave the rest unticked
-- Fill repo-specific directives the template asks for (e.g. `/kind bug`, `release-note` block)
-- No template: write a plain body. Faithful ≠ verbose — a sentence or two per section is normal
+Keep every section heading in order; delete HTML comments (`<!-- ... -->`) and replace placeholders with real content; tick only the checklist items (`- [ ]`) actually done and leave the rest unticked; fill repo-specific directives the template asks for (e.g. `/kind bug`, `release-note` block). No template: write a plain body. Faithful ≠ verbose — a sentence or two per section is normal.
 
 Body by type — **bug fix**: what was broken, why (root cause), user-visible impact, how the fix works; **feature**: motivation (the concrete use case) and how the design works.
 

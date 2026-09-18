@@ -1,6 +1,6 @@
 ---
 name: test-driven-development
-description: "Test-first discipline: one failing test before any production code, then the RED-GREEN-REFACTOR loop. Use when: implementing a feature or bugfix, writing tests, tempted to write code first and test after."
+description: "Test-first RED-GREEN-REFACTOR discipline. Use when: adding or changing behavior that tests can pin, writing tests, tempted to write code first and test after."
 argument-hint: "Describe the feature or bugfix to implement test-first"
 ---
 
@@ -28,6 +28,6 @@ No production code without a failing test written first. If code exists before i
 - Exercise real code, not mocks of the thing under test.
 - Assert behavior, not implementation details.
 
-## Exceptions (require user consent)
+## Exceptions
 
-Throwaway prototypes, generated code, and pure configuration may skip TDD — only after the user explicitly agrees.
+Throwaway prototypes, generated code, and pure configuration may skip TDD: attended, ask the user once; unattended, record the skip in your report and proceed.

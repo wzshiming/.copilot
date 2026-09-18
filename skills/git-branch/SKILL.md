@@ -1,6 +1,6 @@
 ---
 name: git-branch
-description: "Start a change on a correctly named branch off the latest default branch, in place or in its own worktree. Use when: starting a fix or feature, naming a branch, isolating parallel sessions or subagents."
+description: "Start a correctly named branch off the latest default branch, in place or in its own worktree. Use when: starting a fix or feature, naming a branch, isolating parallel sessions or subagents."
 argument-hint: "What the change is and the issue number if there is one; remote and default branch if not standard; whether this checkout must stay untouched"
 ---
 
@@ -10,13 +10,7 @@ Branch off the latest upstream default branch. Never work on the default branch 
 
 ## Starting State
 
-```sh
-git branch --show-current && git status --short
-git rev-parse --path-format=absolute --show-toplevel   # <this-checkout>
-git worktree list                                       # first line: <main-root>
-```
-
-Note the current branch and any dirty files. `<this-checkout>` ≠ `<main-root>` ⇒ already in a linked worktree: if it is this task's own (the path named in your dispatch), skip creation and report its path and branch; to isolate further tasks from inside it (parallel dispatches), use the worktree command below, which works from any checkout.
+Note the current branch and any dirty files (`git branch --show-current && git status --short`). `<main-root>` is the first line of `git worktree list`; when `git rev-parse --path-format=absolute --show-toplevel` prints a different path, you are already in a linked worktree — if it is this task's own (the path named in your dispatch), skip creation and report its path and branch. The worktree command below works from any checkout, so it also isolates further tasks (parallel dispatches) from inside one.
 
 ## Where
 
@@ -71,4 +65,4 @@ Then continue with git-commit.
 - One branch per worktree — git refuses to check out a branch another worktree already has.
 - Commit before returning or handing off — uncommitted work is invisible elsewhere.
 - `git worktree add` denied by a sandbox or permission prompt: say so; work in place only when nothing else shares the checkout, otherwise stop and report the blocker.
-- When done, land with finish-branch, which returns the main root to the base branch and removes this worktree and its branch; commits, pushes, and PRs follow git-commit, git-push, and github-pr. A worktree left behind after its branch landed is a leak: once the task is over, `git worktree list` from the main root must no longer show it, and the `.worktrees/` directories it leaves empty (its `<prefix>/` dir, and `.worktrees/` itself after the last worktree) must be gone.
+- When done, land with finish-branch; commits, pushes, and PRs follow git-commit, git-push, and github-pr. A worktree left behind after its branch landed is a leak: `git worktree list` from the main root must no longer show it, and the `.worktrees/` directories it leaves empty (its `<prefix>/` dir, and `.worktrees/` itself after the last worktree) must be gone.
