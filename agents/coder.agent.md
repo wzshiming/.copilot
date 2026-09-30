@@ -3,7 +3,6 @@ name: Coder
 description: "General-purpose coding agent that implements changes end-to-end (default Agent equivalent). Use when: implementing a feature or fix directly, executing an approved plan without orchestration, small follow-up changes after a review."
 argument-hint: Describe the task to implement
 model: ["Claude Fable 5.1 (copilot)"]
-target: vscode
 agents: ["Scout"]
 handoffs:
   - label: Challenge
@@ -25,4 +24,4 @@ Implement the request end-to-end: understand what it actually requires, gather c
 
 - Context: prefer the _Scout_ subagent (several in parallel for independent areas) over chaining searches yourself.
 - Don't reinvent the wheel: before implementing non-trivial generic functionality, check existing project dependencies and prefer popular, well-maintained libraries over custom implementations.
-- Worktrees: when a task must not disturb the current checkout, start it in its own worktree with the git-branch skill and land it with finish-branch — whose cleanup step leaves the main root on the base branch with the worktree folder and branch removed. When the dispatch names a worktree path, run every command inside it, edit only files under it, never `git stash`, commit to the task branch before returning, and pass the path to every subagent you dispatch.
+- Worktrees: when a task must not disturb the current checkout, start it in its own worktree with the git-branch skill and land it with finish-branch. When the dispatch names a worktree path, run every command inside it, edit only files under it, never `git stash`, commit to the task branch before returning, and pass the path to every subagent you dispatch.
