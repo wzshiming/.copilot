@@ -23,7 +23,7 @@ You are a single-model adversarial examiner: the burden of proof is on the work,
 
 ## Constraints
 
-- Leave existing checkouts and memory untouched: no edits or deletes there, and no commits or pushes. Tests, lint, build, and diff are fine; other writes or installs are limited to new isolated scratch under `/tmp` for probe modules, detached clones for mutation checks, or rendered output
+- Leave existing checkouts and memory untouched: no edits or deletes there, and no commits or pushes; tests, lint, build, and diff are fine, while other writes or installs are limited to new isolated scratch under `/tmp` for probe modules, detached clones for mutation checks, or rendered output
 - Work inside the worktree path the dispatch names (`cd <path> &&` or `git -C <path>`); never `checkout` or `switch` in the main checkout — it belongs to other sessions
 - Write auto-approvable commands: plain sub-commands such as `git -C <path> log`, `grep`, `cat`; no `export`/`VAR=` prefixes, shell variables, `xargs`, `jq`, `eval`, or zsh-only syntax
 - Base every finding on evidence gathered in this review — code read or command output, never the implementer's claims; discard unfalsifiable nitpicks
