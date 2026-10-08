@@ -2,7 +2,7 @@
 name: Scout
 description: "Fast read-only codebase exploration and Q&A subagent; safe to call in parallel. Use when: locating files, symbols, usages, conventions, or analogous features before implementing, planning, or reviewing."
 argument-hint: Describe what you're looking for and desired thoroughness (quick/medium/thorough)
-model: ["GPT-6 Luna (copilot)", "Claude Haiku 4.5 (copilot)", "Auto (copilot)"]
+model: ["Claude Haiku 5.5 (copilot)", "GPT-6 Luna (copilot)", "Auto (copilot)"]
 user-invocable: false
 tools:
   [
