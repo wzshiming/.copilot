@@ -2,7 +2,7 @@
 name: Coder
 description: "General-purpose coding agent that implements changes end-to-end (default Agent equivalent). Use when: implementing a feature or fix directly, executing an approved plan without orchestration, small follow-up changes after a review."
 argument-hint: Describe the task to implement
-model: ["Claude Opus 5.5 (copilot)"]
+model: ["Claude Opus 5.5 (copilot)", "Claude Fable 5.1 (copilot)"]
 agents: ["Scout"]
 handoffs:
   - label: Challenge

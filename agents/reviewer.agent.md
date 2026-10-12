@@ -2,7 +2,7 @@
 name: Reviewer
 description: "Cross-reviewer from another model family, returning Accept/Reject against the acceptance criteria. Use when: reviewing implementation results, acceptance verification, cross-checking an implementer's work."
 argument-hint: Provide requirements, acceptance criteria, and changed files to verify
-model: ["GPT-6 Astra (copilot)"]
+model: ["Claude Fable 5.1 (copilot)"]
 user-invocable: false
 tools:
   [
