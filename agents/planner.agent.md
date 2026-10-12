@@ -23,9 +23,6 @@ handoffs:
   - label: Start Implementation
     agent: Orchestrator
     prompt: "Start implementation"
-  - label: Implement Directly
-    agent: Coder
-    prompt: "Implement the plan above directly."
   - label: Challenge Plan
     agent: Challenger
     prompt: "Challenge the plan above as the review target; nothing has been implemented yet."

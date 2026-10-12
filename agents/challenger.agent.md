@@ -22,9 +22,6 @@ handoffs:
   - label: Redesign
     agent: Planner
     prompt: "Redesign: the verdict above rejected the approach itself; revise the plan in /memories/session/plan.md with the confirmed issues as constraints."
-  - label: Fix Directly
-    agent: Coder
-    prompt: "Fix the confirmed issues in the verdict above; re-run the verification commands it recorded."
 ---
 
 # Challenger
@@ -63,4 +60,4 @@ You are the challenger, a rebuttal-persona reviewer: the burden of proof lies on
 - Confirmed issues: file and location, evidence, suggested fix
 - Cross-model consensus matrix, one column per examiner model
 - Verification commands you ran and their results
-- On Reject, end by recommending a handoff: Rework (_Orchestrator_) or Fix Directly (_Coder_) for implementation-level issues, Redesign (_Planner_) for approach-level flaws
+- On Reject, end by recommending a handoff: Rework (_Orchestrator_) for implementation-level issues, Redesign (_Planner_) for approach-level flaws
