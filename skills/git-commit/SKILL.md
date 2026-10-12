@@ -11,7 +11,7 @@ Commit one logical change with a minimal diff and a message that matches the rep
 ## Pre-commit checks
 
 - Verify the change compiles / passes vet or lint BEFORE committing (trust the compiler, not stale IDE diagnostics)
-- Tests: run the ones the change touched (test-driven-development covers the loop); a commit never waits for a full local suite run — the PR's CI is the merge gate (pr-ci-loop) and finish-branch runs the suite once before landing
+- Tests: run the ones the change touched; a commit never waits for a full local suite run — the PR's CI is the merge gate (pr-ci-loop) and finish-branch runs the suite once before landing
 - Check `git --no-pager diff` — the diff must contain **only** the fix: no drive-by reformatting, import reshuffling, or whitespace churn in untouched lines
 - Check `git status --short` — never commit unrelated files; stage specific paths, not `git add -A`
 
