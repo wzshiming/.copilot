@@ -6,13 +6,17 @@ argument-hint: "PR number and upstream repo"
 
 # PR CI Loop
 
-Once the PR is open, its CI is the merge gate: watch it instead of re-running the full suite locally after every push.
+The PR's CI runs the full suite and is the merge gate: a tree is verified by CI as soon as it is on a PR, so locally run only the targeted tests the change touches, never the full suite again after a push.
 
-After creating the PR (or pushing new commits to it), watch the checks until they finish — no pipe, so the exit code survives (non-zero on failure):
+After creating the PR (or pushing new commits to it), watch the checks until they finish:
 
 ```sh
-gh pr checks <number> --repo <upstream> --watch --fail-fast --interval 30
+gh pr checks <number> --repo <upstream> --watch --fail-fast --interval 30 | cat
 ```
+
+The pipe does two jobs: with stdout not a TTY, gh reprints the table each interval instead of opening an alternate screen, and that output every 30 s keeps an agent terminal from being moved to the background after 5 silent minutes — so never redirect the watch to a file. Read the outcome from the final table (pass, fail, or pending per check), not from the exit code. Right after a push, `no checks reported on the '<branch>' branch` means Actions has not registered the run yet: `sleep 30` and watch again.
+
+Wait 30 minutes by default, or until the deadline the dispatch sets; checks still pending then are reported as pending, and the dispatcher decides whether to keep waiting or fall back to a local full run. When CI is unreachable — the tree is on no PR, a fork PR's workflows await maintainer approval, or no check appeared by the deadline — fall back to one local full run.
 
 On a failure, pull the log instead of rerunning anything locally:
 

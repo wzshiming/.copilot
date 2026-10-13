@@ -10,7 +10,7 @@ Integrate a finished branch the way the user chooses, then leave the main root o
 
 ## Steps
 
-1. **Verify** — run the full suite on the exact tree you are about to integrate. Red: report and stop — the options come after green.
+1. **Verify** — the full suite must be green on the exact tree you are about to integrate. A tree headed for a PR (option 1, or option 2 onto a `<base>` that is itself a PR branch) gets that run from the PR's CI after the push (pr-ci-loop) instead of locally; any other tree gets one local run here. Red locally: report and stop — the options come after green.
 
 2. **Detect** — before any `cd`, capture where you are:
 
@@ -29,8 +29,9 @@ Integrate a finished branch the way the user chooses, then leave the main root o
    2. Merge locally, fast-forward only, so the landed tree is exactly the verified one:
       - Precondition: the main root is clean (`git -C <main-root> status --porcelain` prints nothing) and on `<base>`. When the branch is checked out in the main root itself, `git switch <base>` gets it there; a linked worktree's main root belongs to other sessions — dirty or on another branch ⇒ stop and ask instead of switching it.
       - `git -C <main-root> pull --ff-only` (skip when `<base>` has no upstream), then `git -C <main-root> merge --ff-only <branch>`.
-      - Refused merge ⇒ `<base>` moved since the split: rebase the branch onto `<base>` — in its worktree, or in the main root after `git switch <branch>` — resolving conflicts as in git-push, re-run the suite on the rebased tree, return the main root to `<base>`, and retry.
-      - Nothing was pushed, so any red result is fully recoverable. Then clean up.
+      - Refused merge ⇒ `<base>` moved since the split: rebase the branch onto `<base>` — in its worktree, or in the main root after `git switch <branch>` — resolving conflicts as in git-push, verify the rebased tree as in step 1, return the main root to `<base>`, and retry.
+      - `<base>` is a PR branch ⇒ `git -C <main-root> push origin <base>`, then wait on the PR's CI per pr-ci-loop.
+      - Unless `<base>` was pushed, nothing left this machine, so any red result is fully recoverable. Then clean up.
    3. Keep as-is: report branch and path.
 
    Discarding is never offered. Only when the user asks for it explicitly, show branch, commits, and path and require the typed word `discard`. Unattended (subagent or Autopilot): option 1 if the task asked for a PR, otherwise option 3 — and report which.
