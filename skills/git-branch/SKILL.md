@@ -56,7 +56,7 @@ git worktree add --no-track "<main-root>/.worktrees/<branch>" -b <branch> <remot
 
 The exclude line keeps `.worktrees/` out of the repo without committing anything. The new worktree holds only committed files: copy ignored files the task needs (`.env`, local config) by hand and install dependencies fresh when there is a lockfile, then take the baseline before changing anything.
 
-Baseline: the base commit's finished CI run, listed by `gh run list --commit <base-sha> --repo <upstream> --limit 3 | cat` (`<base-sha>` is `git rev-parse <remote>/<default-branch>`); for a red one, record the existing failures from `gh run view <run-id> --repo <upstream> --log-failed | tail -60`. Only when the base commit has no finished run, run the test suite locally once. Failing baseline: ask whether to proceed; unattended, record it and continue.
+Baseline: the base commit's finished CI run, listed by `gh run list --commit <base-sha> --repo <upstream> --limit 3 | cat` (`<base-sha>` is the commit the branch starts from, `<remote>/<default-branch>` above); for a red one, record the existing failures from `gh run view <run-id> --repo <upstream> --log-failed | tail -60`. Only when the base commit has no finished run, run the test suite locally once. Failing baseline: ask whether to proceed; unattended, record it and continue.
 
 Then continue with git-commit.
 
