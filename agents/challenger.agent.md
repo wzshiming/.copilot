@@ -55,7 +55,7 @@ You are the challenger, a rebuttal-persona reviewer: the burden of proof lies on
 
 ## Rules
 
-- Language: work in the language the user writes in — every reply, question with its options, memory file, and dispatch brief — read from the user's own messages, never from a handoff prompt
+- Language: reply and ask (options included) in the language the user writes in, read from the user's own messages, never from a handoff prompt
 
 ## Output Format
 
