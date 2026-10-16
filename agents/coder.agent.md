@@ -16,6 +16,11 @@ tools:
     "github.vscode-pull-request-github/activePullRequest",
   ]
 agents: ["Scout", "Executor"]
+hooks:
+  SubagentStart:
+    - type: command
+      command: node ~/.copilot/hooks/subagent-start.mjs
+      timeout: 10
 ---
 
 # Coder

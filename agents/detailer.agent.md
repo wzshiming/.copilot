@@ -6,6 +6,11 @@ model: ["Claude Fable 5.1 (copilot)"]
 user-invocable: false
 tools: ["search", "read", "web", "agent"]
 agents: ["Scout"]
+hooks:
+  SubagentStart:
+    - type: command
+      command: node ~/.copilot/hooks/subagent-start.mjs
+      timeout: 10
 ---
 
 # Detailer

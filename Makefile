@@ -2,7 +2,7 @@ PRETTIER := npx --yes prettier@3.9.6
 MARKDOWNLINT := npx --yes markdownlint-cli2@0.17.2
 BATS := npx --yes bats@1.13.0
 SHELLCHECK := shellcheck -s sh
-HOOK_TESTS := hooks/pre-tool-use.test.mjs hooks/subagent-start.test.mjs hooks/worktree.test.mjs
+HOOK_TESTS := hooks/pre-tool-use.test.mjs hooks/subagent-start.test.mjs hooks/registration.test.mjs
 
 .PHONY: check format-check lint test format
 

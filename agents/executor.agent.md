@@ -7,6 +7,15 @@ user-invocable: false
 tools:
   ["search", "read", "execute/runInTerminal", "execute/getTerminalOutput", "execute/killTerminal"]
 agents: []
+hooks:
+  PreToolUse:
+    - type: command
+      command: node ~/.copilot/hooks/pre-tool-use.mjs
+      timeout: 5
+  SubagentStart:
+    - type: command
+      command: node ~/.copilot/hooks/subagent-start.mjs
+      timeout: 10
 ---
 
 # Executor

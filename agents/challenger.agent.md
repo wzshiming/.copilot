@@ -15,6 +15,11 @@ tools:
     "agent",
   ]
 agents: ["Examiner", "Scout", "Executor"]
+hooks:
+  SubagentStart:
+    - type: command
+      command: node ~/.copilot/hooks/subagent-start.mjs
+      timeout: 10
 handoffs:
   - label: Rework
     agent: Orchestrator
