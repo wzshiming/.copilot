@@ -1,0 +1,20 @@
+{
+  "hooks": {
+    "PreToolUse": [
+      {
+        "type": "command",
+        "command": "node hooks/pre-tool-use.mjs",
+        "cwd": "~/.copilot",
+        "timeout": 5
+      }
+    ],
+    "SubagentStart": [
+      {
+        "type": "command",
+        "command": "node hooks/subagent-start.mjs",
+        "cwd": "~/.copilot",
+        "timeout": 10
+      }
+    ]
+  }
+}

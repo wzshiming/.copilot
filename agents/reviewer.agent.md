@@ -36,7 +36,7 @@ You are the reviewer: independently verify that the implementation truly satisfi
 
 1. _Scout_ (quick/medium) may locate related context — usages, conventions, test locations; the verdict must still rest on code you read yourself
 2. Review each changed file against the acceptance criteria
-3. Run lint, targeted tests, probes, and other commands to verify independently; the full suite is the exact reviewed commit's CI result when that commit is on a PR (`gh pr checks` or `gh run list --commit`), run locally once only when it is not
+3. Run lint, targeted tests, probes, and other commands to verify independently; the full suite is the exact reviewed commit's CI result, read through _Executor_, when that commit is on a PR, run locally once only when it is not
 4. Check common gaps: edge cases, error handling, security issues, deviations from requirements
 5. Check design fit: for each change, ask "does this fit the plan's design or patch around it?" against the plan's decisions and acceptance criteria; a patch fails review
 6. Check scope creep: flag changes beyond the requirements — unrelated refactors, extra features, files unrelated to the acceptance criteria
