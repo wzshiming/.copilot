@@ -20,10 +20,10 @@ The agents assume these user settings; `settings.json` is outside this repo's tr
 
 ## Hooks
 
-`hooks/worktree.json` registers two hooks of the Local harness; `chat.useHooks` is on by default, so with this repo cloned at `~/.copilot` they apply to every Local-harness session on this machine — all windows and workspaces, the user's own sessions and every subagent:
+Two hooks of the Local harness are registered in the frontmatter `hooks:` of the agents they serve, so with this repo cloned at `~/.copilot` they run in every Local-harness session that runs one of those agents — mostly the subagents dispatched by _Orchestrator_, _Planner_, or each other, in any window or workspace — and not in sessions of the default agent or of VS Code's built-in subagents; they need `chat.useHooks` (on by default) and a trusted workspace:
 
-- `PreToolUse` (`hooks/pre-tool-use.mjs`): auto-approves a single `~/.copilot/scripts/<name>.sh` call with no suffix and no pipe, and denies every form of `git stash`, saying that the stash is shared by all worktrees of a repository; a script call with an `&& …` suffix or a pipe just gets the normal approval prompt, not an error
-- `SubagentStart` (`hooks/subagent-start.mjs`): hands a starting subagent the `worktree-status.sh` listing of the repository around its cwd, only when that repository has a linked worktree or a leftover or stale registration
+- `PreToolUse` (`hooks/pre-tool-use.mjs`, on _Executor_ and _Scout_, the two agents that keep a terminal): auto-approves a single `~/.copilot/scripts/<name>.sh` call with no suffix and no pipe, and denies every form of `git stash`, saying that the stash is shared by all worktrees of a repository; a script call with an `&& …` suffix or a pipe just gets the normal approval prompt, not an error
+- `SubagentStart` (`hooks/subagent-start.mjs`, on the seven dispatchable agents — every agent but _Planner_ and _Orchestrator_, which never run as subagents): hands a starting subagent the `worktree-status.sh` listing of the repository around the session's cwd, only when that repository has a linked worktree or a leftover or stale registration
 - Known gaps: git wrapped in `sh -c`, `eval`, `xargs`, `env`, `exec`, or `sudo`, shell aliases, and `{ …; }` or `if` compound forms pass the hook unseen — the guardrail is not a sandbox, and _Executor_'s "never `git stash`" stays the primary rule
 - `"chat.useHooks": false` turns the hooks off
-- The harness reads the hooks from `~/.copilot/hooks/`, so a merged change takes effect only after `git pull --ff-only` on `master` in the main checkout
+- The harness reads the agent files from `~/.copilot/agents/` and the hook files from `~/.copilot/hooks/`, so a merged change takes effect only after `git pull --ff-only` on `master` in the main checkout
