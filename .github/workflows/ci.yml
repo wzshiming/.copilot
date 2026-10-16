@@ -10,8 +10,14 @@ permissions:
 
 jobs:
   check:
-    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+    runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v6
-      # the Makefile pins tool versions via npx --yes, no install step needed
+      # actions/runner-images ships shellcheck on Ubuntu but not on macOS
+      - if: runner.os == 'macOS'
+        run: brew install shellcheck
+      # the Makefile runs prettier, markdownlint-cli2, and bats pinned via npx --yes
       - run: make check

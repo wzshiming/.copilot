@@ -1,0 +1,62 @@
+#!/bin/sh
+# Fake gh for tests/ci-wait.bats. Answers come from files under $GH_MOCK_DIR, and
+# every call appends its arguments as one line to $GH_MOCK_DIR/calls.log.
+#   pr checks … --json …     stdout = checks.N on the N-th such call, N sticking at
+#                            the last file present; exit 0 as gh does under --json.
+#                            A checks.N.stderr instead goes to stderr with empty
+#                            stdout and exit 1, as gh's "no checks reported on the
+#                            '<branch>' branch" and lookup errors do.
+#   pr checks … (no --json)  stdout = table; exit 1, 8 or 0 as gh does when the
+#                            last served checks hold a fail/cancel, a pending, or
+#                            neither.
+#   run view --job <id> …    stdout = joblog.<id>, else the line "log for job <id>".
+#   anything else            "mock gh: unexpected args" on stderr, exit 99.
+
+dir=${GH_MOCK_DIR:?must point at the fixture directory}
+printf '%s\n' "$*" >> "$dir/calls.log"
+
+json='' job='' prev=''
+for arg in "$@"; do
+  case $arg in
+    --json | --json=*) json=1 ;;
+    --job=*) job=${arg#--job=} ;;
+  esac
+  [ "$prev" = --job ] && job=$arg
+  prev=$arg
+done
+
+case " $* " in
+  *" pr checks "*)
+    if [ -z "$json" ]; then
+      cat "$dir/table"
+      [ -e "$dir/served" ] || exit 0
+      exit "$(awk -F '\t' '
+        $1 == "fail" || $1 == "cancel" { fail = 1 }
+        $1 == "pending" { pending = 1 }
+        END { print (fail ? 1 : pending ? 8 : 0) }' "$(cat "$dir/served")")"
+    fi
+    n=$(($(cat "$dir/polls" 2>/dev/null || echo 0) + 1))
+    printf '%s\n' "$n" > "$dir/polls"
+    while [ "$n" -gt 1 ] && [ ! -e "$dir/checks.$n" ] && [ ! -e "$dir/checks.$n.stderr" ]; do
+      n=$((n - 1))
+    done
+    if [ -e "$dir/checks.$n.stderr" ]; then
+      cat "$dir/checks.$n.stderr" >&2
+      exit 1
+    fi
+    printf '%s\n' "$dir/checks.$n" > "$dir/served"
+    cat "$dir/checks.$n"
+    ;;
+  *" run view "*)
+    [ -n "$job" ] || { printf 'mock gh: run view without --job\n' >&2; exit 99; }
+    if [ -e "$dir/joblog.$job" ]; then
+      cat "$dir/joblog.$job"
+    else
+      printf 'log for job %s\n' "$job"
+    fi
+    ;;
+  *)
+    printf 'mock gh: unexpected args: %s\n' "$*" >&2
+    exit 99
+    ;;
+esac

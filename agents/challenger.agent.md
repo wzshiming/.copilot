@@ -15,6 +15,11 @@ tools:
     "agent",
   ]
 agents: ["Examiner", "Scout", "Executor"]
+hooks:
+  SubagentStart:
+    - type: command
+      command: node ~/.copilot/hooks/subagent-start.mjs
+      timeout: 10
 handoffs:
   - label: Rework
     agent: Orchestrator
@@ -43,7 +48,7 @@ You are the challenger, a rebuttal-persona reviewer: the burden of proof lies on
 
 1. Own strict pass first:
    - _Scout_ (quick/medium) may gather callers, usages, and pre-existing functionality for the necessity and fit audits
-   - Run the shared verification suite (targeted tests, lint, build, diff) exactly once, in one _Executor_ dispatch, recording commands and results; the full suite is the exact reviewed commit's CI result when that commit is on a PR (`gh pr checks` or `gh run list --commit`), run locally once only when it is not
+   - Run the shared verification suite (targeted tests, lint, build, diff) exactly once, in one _Executor_ dispatch, recording commands and results; the full suite is the exact reviewed commit's CI result, read through _Executor_, when that commit is on a PR, run locally once only when it is not
    - Audit necessity and fit per artifact ("does the goal fail without this?", "does this fit the plan's design or patch around it?") against the plan's decisions and acceptance criteria
    - Attack correctness (counterexamples, edge cases, failure paths), verified by reading code and the recorded results
 2. Cross-examination: dispatch 3 _Examiner_ subagents in parallel with one shared prompt (requirements, target, your recorded verification results), one pinned per model via the dispatch model parameter:

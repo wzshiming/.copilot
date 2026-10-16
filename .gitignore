@@ -1,6 +1,8 @@
 /*
-!skills
 !agents
+!scripts
+!tests
+!hooks
 !/*.md
 !/LICENSE
 !/Makefile

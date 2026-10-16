@@ -17,6 +17,15 @@ tools:
     "execute/getTerminalOutput",
   ]
 agents: []
+hooks:
+  PreToolUse:
+    - type: command
+      command: node ~/.copilot/hooks/pre-tool-use.mjs
+      timeout: 5
+  SubagentStart:
+    - type: command
+      command: node ~/.copilot/hooks/subagent-start.mjs
+      timeout: 10
 ---
 
 # Scout
