@@ -21,7 +21,7 @@ handoffs:
     prompt: "Rework: fix each confirmed issue in the Challenger verdict above; the task ledger, if any, is in /memories/repo/."
   - label: Redesign
     agent: Planner
-    prompt: "Redesign: the verdict above rejected the approach itself; revise the plan in /memories/session/plan.md with the confirmed issues as constraints."
+    prompt: "Redesign: the verdict above rejected the approach itself; revise the plan file named above, in /memories/session/, with the confirmed issues as constraints."
 ---
 
 # Challenger
