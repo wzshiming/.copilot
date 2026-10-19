@@ -4,7 +4,7 @@ Personal agents repository — agent definitions plus the scripts they run, no a
 
 ## Structure
 
-Only `.github/`, `agents/`, `hooks/`, `scripts/`, `tests/`, dotfiles, root Markdown docs, `LICENSE`, and `Makefile` are tracked; everything else at the root is local runtime state excluded by the `.gitignore` whitelist.
+Only `.github/`, `agents/`, `scripts/`, `tests/`, dotfiles, root Markdown docs, `LICENSE`, and `Makefile` are tracked; everything else at the root is local runtime state excluded by the `.gitignore` whitelist.
 
 ### Scripts
 
@@ -12,13 +12,6 @@ Only `.github/`, `agents/`, `hooks/`, `scripts/`, `tests/`, dotfiles, root Markd
 - A script never prompts, reads no environment variable as configuration, and never forces; an unmet precondition makes it refuse and say why.
 - Exit codes: `0` done, `1` refused or failed, `2` usage error; a script's `--help` may define more (`ci-wait.sh`: `3` still pending at the deadline); results print as `key=value` lines, a listing (`worktree-status.sh`) as one line per item, a watcher as one progress line per poll plus the final table; `--help` prints one paragraph.
 - Tests live in `tests/<name>.bats` (bats-core); reusable fake commands live in `tests/mock/<cmd>`, never as stubs written inside a single `.bats` file.
-
-### Hooks
-
-- Each hook lives in `hooks/<event>.mjs` (`pre-tool-use.mjs` for `PreToolUse`) as a zero-dependency ES module importing only `node:` built-ins, registered in `hooks/worktree.json` as `node hooks/<event>.mjs` with `cwd` `~/.copilot`: a user-level hook of the Local harness, which runs the command from the entry's `cwd` (a `~` there resolves to the user's home; without a `cwd`, from the workspace root), so the relative path names the hook file of the checkout at `~/.copilot`.
-- A hook exports `EVENT` and one pure function for direct tests; its CLI entry runs only as the entry point (`import.meta.main`, with an `argv[1]` comparison for a Node without it), reads stdin once, writes one envelope or nothing to stdout, never writes stderr, and exits `0` whatever happens (fail-open: an error means no output, never `2`); it writes no file and reads no environment variable as configuration.
-- Hooks are guardrails, not the rules: a rule lives in the agent body it governs (Executor's Constraints and Rules), and a hook only backs one.
-- Tests live in `hooks/<event>.test.mjs`, one behavior per test: the pure function called directly plus end-to-end `node <hook>` runs fed JSON on stdin; `node --test` runs the Makefile's `HOOK_TESTS` list, and `hooks/worktree.test.mjs` self-checks the registry against the files it names.
 
 ### Agents
 
@@ -28,10 +21,10 @@ Only `.github/`, `agents/`, `hooks/`, `scripts/`, `tests/`, dotfiles, root Markd
 
 ## Checks
 
-- `make check` — Prettier format check + markdownlint + shellcheck + bats + node tests, the full suite.
+- `make check` — Prettier format check + markdownlint + shellcheck + bats, the full suite.
 - `make lint` — markdownlint on Markdown + `shellcheck -s sh` on `scripts/*.sh`.
-- `make test` — bats-core on `tests/*.bats` + `node --test` on the Makefile's `HOOK_TESTS` list; each `hooks/*.test.mjs` is a prerequisite of the `test` target, so a missing file fails the build.
-- `make format` — Prettier rewrites Markdown, `.mjs`, and `.json`.
+- `make test` — bats-core on `tests/*.bats`.
+- `make format` — Prettier rewrites Markdown.
 - These targets, or the commands they run on specific files, may run locally without asking.
 - CI (`.github/workflows/ci.yml`) runs `make check` on `ubuntu-latest` and `macos-latest` for pushes to `master` and all PRs.
 
