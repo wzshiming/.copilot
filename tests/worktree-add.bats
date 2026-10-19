@@ -1,9 +1,20 @@
 #!/usr/bin/env bats
-# worktree-add.sh [-C p] <branch> [<base-ref>]: create <main-root>/.worktrees/<branch>.
+# worktree-add.sh [-C p] <branch> [<base-ref>]: create or attach <main-root>/.worktrees/<branch>.
 
 load helpers
 
 setup() { setup_fixture; }
+
+# lock_path: the per-repo lock both worktree scripts take, in MAIN's common git dir.
+lock_path() {
+  printf '%s/worktree-scripts.lock\n' "$(git -C "$MAIN" rev-parse --path-format=absolute --git-common-dir)"
+}
+
+# hold_lock <pid>: leave the lock behind as a holder running as <pid> would.
+hold_lock() { printf '%s\n' "$1" > "$(lock_path)"; }
+
+# dead_pid: pid of a child that has already exited, so kill -0 fails on it.
+dead_pid() { sh -c 'echo $$'; }
 
 @test "worktree-add.sh creates .worktrees/<branch> from origin/master and prints the six result lines" {
   run --separate-stderr "$SCRIPTS/worktree-add.sh" -C "$MAIN" feat
@@ -43,13 +54,66 @@ setup() { setup_fixture; }
   [ "$(git -C "$MAIN" rev-parse feat)" = "$(git -C "$MAIN" rev-parse origin/master)" ]
 }
 
-@test "worktree-add.sh refuses with 'exists' when the branch exists without a worktree" {
+@test "worktree-add.sh attaches a branch that exists without a worktree and prints state=attached with an empty base" {
   git -C "$MAIN" branch --no-track feat origin/master
   run --separate-stderr "$SCRIPTS/worktree-add.sh" -C "$MAIN" feat
+  assert_status 0
+  assert_output_is "$(printf '%s\n' \
+    "worktree=$WORKTREES/feat" \
+    "branch=feat" \
+    "base=" \
+    "base_sha=" \
+    "main_root=$MAIN_ROOT" \
+    "state=attached")"
+  [ "$(worktree_of_branch feat)" = "$WORKTREES/feat" ]
+  [ "$(git -C "$WORKTREES/feat" rev-parse HEAD)" = "$(git -C "$MAIN" rev-parse feat)" ]
+}
+
+@test "worktree-add.sh does not fetch when attaching an existing branch" {
+  git -C "$MAIN" branch --no-track feat origin/master
+  before=$(git -C "$MAIN" rev-parse origin/master)
+  advance_origin master
+  run --separate-stderr "$SCRIPTS/worktree-add.sh" -C "$MAIN" feat
+  assert_status 0
+  has_line "state=attached"
+  [ "$(git -C "$MAIN" rev-parse origin/master)" = "$before" ]
+}
+
+@test "worktree-add.sh attaching with an explicit base-ref reports it and the merge-base as base_sha" {
+  git -C "$MAIN" branch --no-track feat origin/master
+  advance_origin master
+  git -C "$MAIN" fetch -q
+  [ "$(git -C "$MAIN" rev-parse origin/master)" != "$(git -C "$MAIN" rev-parse feat)" ]
+  run --separate-stderr "$SCRIPTS/worktree-add.sh" -C "$MAIN" feat origin/master
+  assert_status 0
+  assert_output_is "$(printf '%s\n' \
+    "worktree=$WORKTREES/feat" \
+    "branch=feat" \
+    "base=origin/master" \
+    "base_sha=$(git -C "$MAIN" merge-base origin/master feat)" \
+    "main_root=$MAIN_ROOT" \
+    "state=attached")"
+}
+
+@test "worktree-add.sh refuses to attach into an unregistered directory at the path and names --orphans" {
+  git -C "$MAIN" branch --no-track feat origin/master
+  mkdir -p "$WORKTREES/feat"
+  printf 'junk\n' > "$WORKTREES/feat/junk.txt"
+  run --separate-stderr "$SCRIPTS/worktree-add.sh" -C "$MAIN" feat
   assert_status 1
-  [[ "$stderr" == *exists* ]]
-  [ ! -e "$WORKTREES/feat" ]
+  [[ "$stderr" == *--orphans* ]]
+  [ "$(ls -A "$WORKTREES/feat")" = "junk.txt" ]
   [ -z "$(worktree_of_branch feat)" ]
+}
+
+@test "worktree-add.sh prunes first, so a branch whose worktree directory vanished is attached again instead of reported as exists" {
+  add_linked feat
+  rm -rf "$WORKTREES/feat"
+  run --separate-stderr "$SCRIPTS/worktree-add.sh" -C "$MAIN" feat
+  assert_status 0
+  has_line "state=attached"
+  [ -d "$WORKTREES/feat" ]
+  [ "$(worktree_of_branch feat)" = "$WORKTREES/feat" ]
 }
 
 @test "worktree-add.sh refuses with 'exists' when the branch's worktree is registered elsewhere" {
@@ -165,8 +229,61 @@ setup() { setup_fixture; }
   [ ! -e "$WORKTREES" ]
 }
 
+@test "worktree-add.sh gives up after 10 s on a lock held by a live pid, naming the pid, and leaves the lock and the repository untouched" {
+  hold_lock $$
+  t0=$(date +%s)
+  run --separate-stderr "$SCRIPTS/worktree-add.sh" -C "$MAIN" feat
+  assert_status 1
+  [[ "$stderr" == *"lock "*" held by pid $$: another worktree script is running; retry"* ]]
+  [ "$(cat "$(lock_path)")" = "$$" ]
+  fails branch_exists feat
+  [ ! -e "$WORKTREES/feat" ]
+  [ $(( $(date +%s) - t0 )) -ge 10 ]
+}
+
+@test "worktree-add.sh reclaims a lock whose pid is dead and removes it on exit" {
+  hold_lock "$(dead_pid)"
+  run --separate-stderr "$SCRIPTS/worktree-add.sh" -C "$MAIN" feat
+  assert_status 0
+  has_line "state=created"
+  [ ! -e "$(lock_path)" ]
+}
+
+@test "worktree-add.sh waits for a live lock holder and proceeds once the lock is released" {
+  lock=$(lock_path)
+  t0=$(date +%s)
+  # a holder: its own pid in the lock for 2 s, then released
+  sh -c 'printf "%s\n" $$ > "$1.tmp" && mv "$1.tmp" "$1"; sleep 2; rm -f "$1"' sh "$lock" 3>&- >/dev/null 2>&1 &
+  holder=$!
+  until [ -e "$lock" ]; do sleep 0.1; done
+  run --separate-stderr "$SCRIPTS/worktree-add.sh" -C "$MAIN" feat
+  t1=$(date +%s)
+  wait "$holder"
+  assert_status 0
+  has_line "state=created"
+  [ $((t1 - t0)) -ge 2 ]
+  [ ! -e "$lock" ]
+}
+
+@test "worktree-add.sh releases the lock when it refuses a branch checked out elsewhere" {
+  git -C "$MAIN" worktree add -q --no-track "$BATS_TEST_TMPDIR/elsewhere" -b feat origin/master
+  hold_lock "$(dead_pid)"
+  run --separate-stderr "$SCRIPTS/worktree-add.sh" -C "$MAIN" feat
+  assert_status 1
+  [[ "$stderr" == *exists* ]]
+  [ ! -e "$(lock_path)" ]
+}
+
 @test "worktree-add.sh --help prints usage to stdout and exits 0" {
   run --separate-stderr "$SCRIPTS/worktree-add.sh" --help
   assert_status 0
   [ -n "$output" ]
+}
+
+@test "worktree-add.sh --help mentions attaching and the lock in one paragraph" {
+  run --separate-stderr "$SCRIPTS/worktree-add.sh" --help
+  assert_status 0
+  [[ "$output" == *attach* ]]
+  [[ "$output" == *lock* ]]
+  [[ "$output" != *$'\n\n'* ]]
 }
