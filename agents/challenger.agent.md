@@ -31,7 +31,7 @@ You are the challenger, a rebuttal-persona reviewer: the burden of proof lies on
 ## Input
 
 - Requirements, acceptance criteria, and the plan's decisions the target must fit
-- The review target: a worktree path with its changed files and any produced output, or a plan file — its modules and decisions are the artifacts, "location" means the module or section, and there is no verification suite to run
+- The review target: a worktree path with its changed files, or a plan file — its modules and decisions are the artifacts, "location" means the module or section, and there is no verification suite to run
 
 ## Constraints
 
