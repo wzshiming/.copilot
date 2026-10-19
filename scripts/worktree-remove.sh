@@ -93,6 +93,16 @@ clear_empty() {
   rmdir "$1" 2>/dev/null || :
 }
 
+# rmdir the directories left empty above worktree $1, up to and including .worktrees
+clear_parents() {
+  _d=$(dirname "$1")
+  while :; do
+    case $_d in "$wtroot" | "$wtroot"/*) ;; *) return 0 ;; esac
+    rmdir "$_d" 2>/dev/null || return 0
+    _d=$(dirname "$_d")
+  done
+}
+
 if [ -n "$orphans" ]; then
   registered=$(printf '%s\n' "$list" | sed -n 's/^worktree //p')
   removed=0 kept=0
@@ -135,12 +145,7 @@ if [ -n "$wt" ]; then
   fi
   git -C "$main_root" worktree remove "$wt" || die "git worktree remove $wt failed"
   git -C "$main_root" worktree prune
-  d=$(dirname "$wt")
-  while :; do
-    case $d in "$wtroot" | "$wtroot"/*) ;; *) break ;; esac
-    rmdir "$d" 2>/dev/null || break
-    d=$(dirname "$d")
-  done
+  clear_parents "$wt"
   removed=$wt
 fi
 
