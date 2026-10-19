@@ -1,17 +1,19 @@
 #!/bin/sh
-# Create <main-root>/.worktrees/<branch> on a new branch; see --help.
+# Create or attach <main-root>/.worktrees/<branch>; see --help.
 
 prog=${0##*/}
 usage="usage: $prog [-C <repo-path>] <branch> [<base-ref>]
 Creates <main-root>/.worktrees/<branch> checked out on the new branch <branch>
 starting at <base-ref>; without <base-ref> it fetches the remote (upstream, else
-origin) and starts at that remote's default branch. Prints worktree=, branch=,
-base=, base_sha=, main_root= and state=created|exists; a branch already checked
-out in its own .worktrees directory is reported, not touched. Runs under
-<git-common-dir>/worktree-scripts.lock, waiting up to 10 s for another worktree
-script on the repository. Refuses (exit 1) when the branch exists elsewhere,
-the directory is taken, no base can be inferred, or the lock stays held; exit 2
-on a usage error."
+origin) and starts at that remote's default branch. A branch that exists with
+no worktree is attached there instead, without a fetch or an inferred base.
+Prints worktree=, branch=, base=, base_sha=, main_root= and
+state=created|attached|exists (base= and base_sha= empty when attaching without
+<base-ref>); a branch already checked out in its own .worktrees directory is
+reported, not touched. Runs under <git-common-dir>/worktree-scripts.lock,
+waiting up to 10 s for another worktree script on the repository. Refuses
+(exit 1) when the branch is checked out elsewhere, the directory is taken, no
+base can be inferred, or the lock stays held; exit 2 on a usage error."
 
 die() { printf '%s: %s\n' "$prog" "$1" >&2; exit 1; }
 usage_error() { printf '%s: %s\n%s\n' "$prog" "$1" "$usage" >&2; exit 2; }
@@ -67,6 +69,8 @@ list=$(git -C "$path" worktree list --porcelain 2>/dev/null) || die "not a git r
 main_root=$(printf '%s\n' "$list" | sed -n '1s/^worktree //p')
 [ -n "$main_root" ] || die "cannot determine the main worktree of $path"
 expected=$main_root/.worktrees/$branch
+# a branch whose worktree directory vanished is attached again, not reported as exists
+git -C "$main_root" worktree prune
 
 # path of the worktree registered on branch $1, empty when none
 branch_worktree() {
@@ -75,10 +79,20 @@ branch_worktree() {
     $0 == "branch " b { print p; exit }'
 }
 
+if git -C "$main_root" show-ref --verify --quiet "refs/heads/$branch"; then
+  wt=$(branch_worktree "$branch")
+  if [ "$wt" = "$expected" ]; then state=exists
+  elif [ -n "$wt" ]; then die "branch '$branch' already exists (checked out at $wt)"
+  else state=attached
+  fi
+else
+  state=created
+fi
+
 if [ -n "$base" ]; then
   git -C "$main_root" rev-parse --verify --quiet "$base^{commit}" >/dev/null \
     || die "base ref '$base' does not resolve to a commit"
-else
+elif [ "$state" != attached ]; then
   # upstream wins over origin
   remote=$(git -C "$main_root" remote | grep -x -e upstream -e origin | sort -r | head -n 1)
   [ -n "$remote" ] || die "no upstream or origin remote: pass an explicit <base-ref>"
@@ -88,23 +102,22 @@ else
   base=${ref#refs/remotes/}
 fi
 
-if git -C "$main_root" show-ref --verify --quiet "refs/heads/$branch"; then
-  wt=$(branch_worktree "$branch")
-  [ "$wt" = "$expected" ] || die "branch '$branch' already exists${wt:+ (checked out at $wt)}"
-  state=exists
-else
+if [ "$state" != exists ]; then
   [ ! -e "$expected" ] || die "$expected exists without branch '$branch': run worktree-remove.sh --orphans first"
   if ! git -C "$main_root" check-ignore -q .worktrees 2>/dev/null; then
     exclude=$common/info/exclude
     mkdir -p "${exclude%/exclude}" || die "cannot create ${exclude%/exclude}"
     grep -qx '/\.worktrees' "$exclude" 2>/dev/null || printf '/.worktrees\n' >>"$exclude" || die "cannot write $exclude"
   fi
-  git -C "$main_root" worktree add -q --no-track "$expected" -b "$branch" "$base" >/dev/null \
-    || die "git worktree add failed"
+  if [ "$state" = created ]; then
+    git -C "$main_root" worktree add -q --no-track "$expected" -b "$branch" "$base" >/dev/null
+  else
+    git -C "$main_root" worktree add -q "$expected" "$branch" >/dev/null
+  fi || die "git worktree add failed"
   wt=$(branch_worktree "$branch")
-  state=created
 fi
 
-base_sha=$(git -C "$main_root" merge-base "$base" "$branch" 2>/dev/null)
+base_sha=''
+[ -z "$base" ] || base_sha=$(git -C "$main_root" merge-base "$base" "$branch" 2>/dev/null)
 printf 'worktree=%s\nbranch=%s\nbase=%s\nbase_sha=%s\nmain_root=%s\nstate=%s\n' \
   "$wt" "$branch" "$base" "$base_sha" "$main_root" "$state"
