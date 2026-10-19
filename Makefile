@@ -12,7 +12,7 @@ format-check:
 
 lint:
 	$(MARKDOWNLINT) "**/*.md"
-	$(SHELLCHECK) scripts/*.sh
+	$(SHELLCHECK) scripts/*.sh hooks/*.sh
 
 test:
 	$(BATS) tests
