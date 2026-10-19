@@ -85,6 +85,13 @@ context_is() { assert_hook_json hookSpecificOutput.additionalContext "$1"; }
   [ ! -e "$BATS_TEST_TMPDIR/other/.worktrees" ]
 }
 
+@test "subagent-start.sh treats a cwd written with a \\n escape as absent and falls back to the process cwd" {
+  run_hook "$START" "{\"hook_event_name\":\"SubagentStart\",\"cwd\":\"/tmp/x\\nelse\",\"agent_id\":\"$ID\",\"agent_type\":\"Coder\"}" "$MAIN"
+  assert_status 0
+  context_is "$(facts "coder/$ID")"
+  [ "$(worktree_of_branch "coder/$ID")" = "$WORKTREES/coder/$ID" ]
+}
+
 @test "subagent-start.sh reads pretty-printed input with its keys in any order like the compact form" {
   json=$(cat <<EOF
 {

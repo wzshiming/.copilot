@@ -5,17 +5,6 @@ load helpers
 
 setup() { setup_fixture; }
 
-# lock_path: the per-repo lock both worktree scripts take, in MAIN's common git dir.
-lock_path() {
-  printf '%s/worktree-scripts.lock\n' "$(git -C "$MAIN" rev-parse --path-format=absolute --git-common-dir)"
-}
-
-# hold_lock <pid>: leave the lock behind as a holder running as <pid> would.
-hold_lock() { printf '%s\n' "$1" > "$(lock_path)"; }
-
-# dead_pid: pid of a child that has already exited, so kill -0 fails on it.
-dead_pid() { sh -c 'echo $$'; }
-
 @test "worktree-add.sh creates .worktrees/<branch> from origin/master and prints the six result lines" {
   run --separate-stderr "$SCRIPTS/worktree-add.sh" -C "$MAIN" feat
   assert_status 0

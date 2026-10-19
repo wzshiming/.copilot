@@ -86,6 +86,17 @@ add_linked() {
   git -C "$MAIN" worktree add -q --no-track "$WORKTREES/$1" -b "$1" "${2:-origin/master}"
 }
 
+# lock_path: the per-repo lock both worktree scripts take, in MAIN's common git dir.
+lock_path() {
+  printf '%s/worktree-scripts.lock\n' "$(git -C "$MAIN" rev-parse --path-format=absolute --git-common-dir)"
+}
+
+# hold_lock <pid>: leave the lock behind as a holder running as <pid> would.
+hold_lock() { printf '%s\n' "$1" > "$(lock_path)"; }
+
+# dead_pid: pid of a child that has already exited, so kill -0 fails on it.
+dead_pid() { sh -c 'echo $$'; }
+
 # fails <cmd...>: succeed only when the command fails (a bare `!` is not caught mid-test).
 fails() {
   if "$@"; then return 1; else return 0; fi
@@ -134,7 +145,7 @@ json_escape() {
 
 # hook_input <event> <agent_id> [cwd] [guard]: the harness's payload for <event> with
 # agent_type Coder; the cwd key only when <cwd> is given, stop_hook_active only when
-# <guard> (a raw JSON literal, true or false) is given.
+# <guard> (raw JSON, normally the literal true or false) is given.
 hook_input() {
   local cwd='' guard=''
   [ -z "${3-}" ] || cwd=$(printf ',"cwd":"%s"' "$(json_escape "$3")")

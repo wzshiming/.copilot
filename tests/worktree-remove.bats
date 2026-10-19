@@ -6,17 +6,6 @@ load helpers
 
 setup() { setup_fixture; }
 
-# lock_path: the per-repo lock both worktree scripts take, in MAIN's common git dir.
-lock_path() {
-  printf '%s/worktree-scripts.lock\n' "$(git -C "$MAIN" rev-parse --path-format=absolute --git-common-dir)"
-}
-
-# hold_lock <pid>: leave the lock behind as a holder running as <pid> would.
-hold_lock() { printf '%s\n' "$1" > "$(lock_path)"; }
-
-# dead_pid: pid of a child that has already exited, so kill -0 fails on it.
-dead_pid() { sh -c 'echo $$'; }
-
 # branch_with_commit <branch> [<start>]: <branch> off <start> (default master) with one commit
 # of its own and no worktree, made in MAIN, which ends back on master.
 branch_with_commit() {

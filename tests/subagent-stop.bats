@@ -75,6 +75,15 @@ dirty_worktree() {
   [ "$(worktree_of_branch "$BR")" = "$WT" ]
 }
 
+@test "subagent-stop.sh blocks a dirty worktree when stop_hook_active is the string \"true\" rather than the literal" {
+  dirty_worktree
+  run_hook "$STOP" "$(hook_input SubagentStop "$ID" "$MAIN" '"true"')"
+  assert_status 0
+  assert_hook_json hookSpecificOutput.decision block
+  [ "$(git -C "$WT" status --porcelain -uall)" = "$PORCELAIN" ]
+  [ "$(worktree_of_branch "$BR")" = "$WT" ]
+}
+
 @test "subagent-stop.sh answers {} for an agent_id whose branch does not exist" {
   before=$(git -C "$MAIN" worktree list --porcelain)
   run_hook "$STOP" "$(hook_input SubagentStop "$ID" "$MAIN" false)"
