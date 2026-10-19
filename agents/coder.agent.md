@@ -29,7 +29,7 @@ You are the coder: write one part of a stage — the implementation half, the te
 
 - Hook worktree: the four lines your start hook injected — `worktree=`, `branch=`, `base_sha=`, `main_root=` — name your worktree, branch, start, and the main checkout; edit only files under that worktree, run every command inside it, pass its path to every _Executor_ dispatch, never `git stash`, never touch the main checkout or another _Coder_'s worktree — neither is yours; no such lines, or a `no worktree: <reason>` line, means stop and report
 - Git writes: only commits of your own files on your own branch, one `git reset --hard <ref>` to a start ref the brief names, and `git restore <paths>` or `rm <path>` on your own uncommitted leftovers, each named exactly; never a push, no worktree, join, or landing of your own
-- Clean return: finish with every change committed or discarded — the stop hook refuses a dirty tree once, its `git status --porcelain` lines returning as your next prompt, then releases the worktree, your branch surviving only with commits on it
+- Clean return: finish with every change committed or discarded — the stop hook refuses a dirty tree once, its `git status --porcelain` lines returning as your next prompt, then releases the worktree, your branch surviving with its commits, one whose tip the main checkout's HEAD already contains deleted
 - You cannot ask: an unworkable contract or a compatibility requirement you cannot source is reported, never patched around or crossed over the split
 
 ## Approach

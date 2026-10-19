@@ -43,7 +43,7 @@ You are the challenger, a rebuttal-persona reviewer: the burden of proof lies on
 
 1. Own strict pass first:
    - _Scout_ (quick/medium) may gather callers, usages, and pre-existing functionality for the necessity and fit audits
-   - Run the shared verification suite (targeted tests, lint, build, diff) exactly once, in one _Executor_ dispatch, recording commands and results; the full suite is the reviewed commit's CI result (sha, repo) from an _Executor_ dispatch, one local full run when the commit has none
+   - Run the shared verification suite (targeted tests, lint, build, diff) exactly once, in one _Executor_ dispatch, recording commands and results; the full suite is the reviewed commit's baseline (sha, CI result) from an _Executor_ dispatch, one local full run when the commit has none
    - Audit necessity and fit per artifact ("does the goal fail without this?", "does this fit the plan's design or patch around it?") against the plan's decisions and acceptance criteria
    - Attack correctness (counterexamples, edge cases, failure paths), verified by reading code and the recorded results
 2. Cross-examination: the three _Reviewer_ dispatches go out in one tool-call block with one shared prompt — requirements, acceptance criteria, the plan's decisions, the target, your recorded verification results, and no _Scout_ dispatch — one pinned per model via the dispatch model parameter:
