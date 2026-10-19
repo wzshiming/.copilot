@@ -11,8 +11,11 @@ contains it, or always with --force-delete-branch; prints removed=<path>|none
 and branch=deleted|kept-unmerged|kept. --orphans deletes each unregistered
 non-empty directory under .worktrees whose files are all blobs the repository
 already has, keeps and lists the others, prunes, clears empty directories, and
-prints orphans_removed= and orphans_kept=. Exit 1 when refused or anything is
-kept, 2 on a usage error."
+prints orphans_removed= and orphans_kept=. Every form runs under
+<git-common-dir>/worktree-scripts.lock, waiting up to 10 s for another worktree
+script on the repository. Exit 0 once <branch>'s removal is done whatever
+branch= says; 1 when refused, when the lock stays held, or when --orphans kept
+anything; 2 on a usage error."
 
 die() { printf '%s: %s\n' "$prog" "$1" >&2; exit 1; }
 usage_error() { printf '%s: %s\n%s\n' "$prog" "$1" "$usage" >&2; exit 2; }
@@ -37,6 +40,38 @@ else
   git check-ref-format --branch "$branch" >/dev/null 2>&1 || usage_error "invalid branch name '$branch'"
 fi
 
+# Serialize the worktree scripts on one repository: <git-common-dir>/worktree-scripts.lock
+# names the holder's pid; it is created by hard link so it is never seen empty, a lock whose
+# pid is dead is reclaimed by rename (one waiter's rename wins), and the wait gives up after 10 s.
+take_lock() {
+  common=$(git -C "$path" rev-parse --path-format=absolute --git-common-dir 2>/dev/null) \
+    || die "not a git repository: $path"
+  lock=$common/worktree-scripts.lock
+  mine=$lock.$$
+  printf '%s\n' "$$" >"$mine" || die "cannot write $mine"
+  waited=0
+  while ! ln "$mine" "$lock" 2>/dev/null; do
+    holder=$(cat "$lock" 2>/dev/null)
+    if [ -n "$holder" ] && ! kill -0 "$holder" 2>/dev/null; then
+      if mv "$lock" "$mine.stale" 2>/dev/null; then
+        if [ "$(cat "$mine.stale" 2>/dev/null)" = "$holder" ]; then rm -f "$mine.stale"
+        else ln "$mine.stale" "$lock" 2>/dev/null; rm -f "$mine.stale"
+        fi
+      fi
+    elif [ "$waited" -ge 10 ]; then
+      rm -f "$mine"
+      die "lock $lock held by pid $holder: another worktree script is running; retry"
+    else
+      sleep 1
+      waited=$((waited + 1))
+    fi
+  done
+  rm -f "$mine"
+  trap 'rm -f "$lock"' EXIT
+  trap 'exit 1' HUP INT TERM
+}
+
+take_lock
 list=$(git -C "$path" worktree list --porcelain 2>/dev/null) || die "not a git repository: $path"
 main_root=$(printf '%s\n' "$list" | sed -n '1s/^worktree //p')
 [ -n "$main_root" ] || die "cannot determine the main worktree of $path"
