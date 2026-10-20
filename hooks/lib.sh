@@ -1,5 +1,6 @@
 # shellcheck shell=sh
-# Sourced by hooks/subagent-*.sh: the hook event's fields, the branch name, JSON output escaping.
+# Sourced by hooks/subagent-*.sh: the hook event's fields, the branch name, JSON output escaping,
+# the orphan sweep.
 
 # json_string <key> <json> [strict]: the first string value of "<key>" in the object <json> with
 # the escapes \" \\ \/ decoded; exit 1 when absent. With a third argument any other escape also
@@ -59,4 +60,14 @@ json_escape() {
         else if (index(ctl, c) == 0) print c
       }
     }'
+}
+
+# sweep_orphans <repo>: delete the unregistered directories of known blobs under <repo>'s .worktrees
+# through the sourcing hook's $scripts/worktree-remove.sh --orphans, its output on stderr and its
+# exit ignored; nothing without an executable script
+# shellcheck disable=SC2154
+sweep_orphans() {
+  if [ -f "$scripts/worktree-remove.sh" ] && [ -x "$scripts/worktree-remove.sh" ]; then
+    "$scripts/worktree-remove.sh" -C "$1" --orphans >&2 || :
+  fi
 }

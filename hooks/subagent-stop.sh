@@ -38,4 +38,5 @@ worktree $wt on branch $branch is dirty: commit your own files through Executor 
 fi
 
 "$scripts/worktree-remove.sh" -C "$repo" "$branch" >&2
+sweep_orphans "$repo"
 pass

@@ -27,6 +27,7 @@ sha=$(git -C "$repo" rev-parse --verify 'HEAD^{commit}' 2>/dev/null) || no_workt
 if [ ! -f "$scripts/worktree-add.sh" ] || [ ! -x "$scripts/worktree-add.sh" ]; then
   no_worktree "$scripts/worktree-add.sh is missing or not executable"
 fi
+sweep_orphans "$repo"
 
 errfile=$(mktemp)
 out=$("$scripts/worktree-add.sh" -C "$repo" "$branch" "$sha" 2>"$errfile")
