@@ -186,6 +186,13 @@ setup() { setup_fixture; }
   [ "$(worktree_of_branch feat-2)" = "$WORKTREES/feat-2" ]
 }
 
+@test "worktree-add.sh called from a deleted working directory still validates the branch through -C and creates the worktree" {
+  run --separate-stderr from_deleted_cwd "$SCRIPTS/worktree-add.sh" -C "$MAIN" feat origin/master
+  assert_status 0
+  has_line "state=created"
+  [ "$(worktree_of_branch feat)" = "$WORKTREES/feat" ]
+}
+
 @test "worktree-add.sh leaves the main checkout's HEAD and status untouched" {
   printf 'edit\n' >> "$MAIN/README.md"
   printf 'new\n' > "$MAIN/untracked.txt"
