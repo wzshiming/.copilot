@@ -24,6 +24,12 @@ facts() {
 # context_is <expected>: the last run's additionalContext is <expected>
 context_is() { assert_hook_json hookSpecificOutput.additionalContext "$1"; }
 
+# start_json: the happy path's one-line answer, the four facts for coder/$ID created from MAIN
+start_json() {
+  printf '{"hookSpecificOutput":{"hookEventName":"SubagentStart","additionalContext":"worktree=%s\\nbranch=%s\\nbase_sha=%s\\nmain_root=%s"}}' \
+    "$WORKTREES/coder/$ID" "coder/$ID" "$HEAD_SHA" "$MAIN_ROOT"
+}
+
 @test "subagent-start.sh answers the four fact lines in one JSON line and creates .worktrees/coder/<id> at HEAD, the main checkout untouched" {
   run_hook "$START" "$(hook_input SubagentStart "$ID" "$MAIN")"
   assert_status 0
@@ -180,6 +186,42 @@ EOF
   context=$(hook_json hookSpecificOutput.additionalContext)
   [[ "$context" == "no worktree: "*"/copy/hooks/../scripts/worktree-add.sh is missing or not executable" ]]
   [ ! -e "$WORKTREES" ]
+}
+
+@test "subagent-start.sh sweeps a known-blob orphan under .worktrees/coder, creates coder/<id> at HEAD, and answers the happy path's one line" {
+  known_orphan old
+  run_hook "$START" "$(hook_input SubagentStart "$ID" "$MAIN")"
+  assert_status 0
+  assert_output_is "$(start_json)"
+  [ ! -e "$WORKTREES/coder/old" ]
+  [ "$(worktree_of_branch "coder/$ID")" = "$WORKTREES/coder/$ID" ]
+  [ "$(git -C "$MAIN" rev-parse "coder/$ID")" = "$HEAD_SHA" ]
+}
+
+@test "subagent-start.sh keeps an orphan holding an unknown file, reports it on stderr alone, and still creates coder/<id>" {
+  known_orphan old
+  printf 'not in any commit\n' > "$WORKTREES/coder/old/notes.txt"
+  run_hook "$START" "$(hook_input SubagentStart "$ID" "$MAIN")"
+  assert_status 0
+  assert_output_is "$(start_json)"
+  [[ "$stderr" == *orphans_kept=1* ]]
+  [ "$(cat "$WORKTREES/coder/old/notes.txt")" = 'not in any commit' ]
+  [ -f "$WORKTREES/coder/old/README.md" ]
+  [ "$(worktree_of_branch "coder/$ID")" = "$WORKTREES/coder/$ID" ]
+}
+
+@test "subagent-start.sh spares a registered sibling worktree and its files while sweeping the orphan beside it" {
+  add_linked coder/other
+  commit_file "$WORKTREES/coder/other" other.txt "other"
+  known_orphan old
+  run_hook "$START" "$(hook_input SubagentStart "$ID" "$MAIN")"
+  assert_status 0
+  context_is "$(facts "coder/$ID")"
+  [ ! -e "$WORKTREES/coder/old" ]
+  [ "$(worktree_of_branch coder/other)" = "$WORKTREES/coder/other" ]
+  [ -f "$WORKTREES/coder/other/README.md" ]
+  [ -f "$WORKTREES/coder/other/other.txt" ]
+  [ "$(worktree_of_branch "coder/$ID")" = "$WORKTREES/coder/$ID" ]
 }
 
 @test "subagent-start.sh and subagent-stop.sh are executable" {

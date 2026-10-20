@@ -124,6 +124,67 @@ dirty_worktree() {
   [ -z "$(worktree_of_branch coder/a-b-c)" ]
 }
 
+@test "subagent-stop.sh removes a clean worktree and sweeps the known-blob orphan beside it, answering {} alone" {
+  add_linked "$BR"
+  known_orphan old
+  run_hook "$STOP" "$(hook_input SubagentStop "$ID" "$MAIN" false)"
+  assert_status 0
+  assert_output_is '{}'
+  [ ! -e "$WT" ]
+  [ -z "$(worktree_of_branch "$BR")" ]
+  [ ! -e "$WORKTREES/coder/old" ]
+}
+
+@test "subagent-stop.sh leaves the orphan beside a dirty worktree untouched while blocking, sweeping it on the guarded stop after the discard" {
+  dirty_worktree
+  known_orphan old
+  run_hook "$STOP" "$(hook_input SubagentStop "$ID" "$MAIN" false)"
+  assert_status 0
+  assert_hook_json hookSpecificOutput.decision block
+  assert_hook_json hookSpecificOutput.reason "$(printf '%s\n%s' "$PORCELAIN" "worktree $WT on branch $BR $DIRTY_REASON")"
+  [ -f "$WORKTREES/coder/old/README.md" ]
+  [ "$(git -C "$WT" status --porcelain -uall)" = "$PORCELAIN" ]
+  git -C "$WT" checkout -q -- README.md
+  rm "$WT/new.txt"
+  run_hook "$STOP" "$(hook_input SubagentStop "$ID" "$MAIN" true)"
+  assert_status 0
+  assert_output_is '{}'
+  [ ! -e "$WT" ]
+  [ ! -e "$WORKTREES/coder/old" ]
+}
+
+@test "subagent-stop.sh sweeps the orphan beside a dirty worktree it leaves in place when stop_hook_active is true" {
+  dirty_worktree
+  known_orphan old
+  run_hook "$STOP" "$(hook_input SubagentStop "$ID" "$MAIN" true)"
+  assert_status 0
+  assert_output_is '{}'
+  [ ! -e "$WORKTREES/coder/old" ]
+  [ "$(git -C "$WT" status --porcelain -uall)" = "$PORCELAIN" ]
+  [ "$(worktree_of_branch "$BR")" = "$WT" ]
+  branch_exists "$BR"
+}
+
+@test "subagent-stop.sh sweeps a known-blob orphan for an agent_id whose branch does not exist" {
+  known_orphan old
+  run_hook "$STOP" "$(hook_input SubagentStop "$ID" "$MAIN" false)"
+  assert_status 0
+  assert_output_is '{}'
+  [ ! -e "$WORKTREES/coder/old" ]
+}
+
+@test "subagent-stop.sh answers {} alone when the sweep keeps an orphan holding an unknown file, its report on stderr" {
+  add_linked "$BR"
+  known_orphan old
+  printf 'not in any commit\n' > "$WORKTREES/coder/old/notes.txt"
+  run_hook "$STOP" "$(hook_input SubagentStop "$ID" "$MAIN" false)"
+  assert_status 0
+  assert_output_is '{}'
+  [[ "$stderr" == *orphans_kept=1* ]]
+  [ "$(cat "$WORKTREES/coder/old/notes.txt")" = 'not in any commit' ]
+  [ ! -e "$WT" ]
+}
+
 @test "subagent-stop.sh is executable" {
   [ -x "$STOP" ]
 }

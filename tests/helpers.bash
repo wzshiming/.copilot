@@ -188,3 +188,11 @@ assert_hook_json() {
   printf -- '--- expected %s ---\n%s\n--- actual ---\n%s\n' "$1" "$2" "$actual" >&2
   return 1
 }
+
+# known_orphan <name>: the unregistered .worktrees/coder/<name> holding a copy of MAIN's README.md —
+# a blob the repository has, as VS Code's Keep leaves a removed Coder worktree's accepted edits.
+known_orphan() {
+  exclude_worktrees
+  mkdir -p "$WORKTREES/coder/$1"
+  cp "$MAIN/README.md" "$WORKTREES/coder/$1/README.md"
+}
