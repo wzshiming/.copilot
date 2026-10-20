@@ -196,3 +196,9 @@ known_orphan() {
   mkdir -p "$WORKTREES/coder/$1"
   cp "$MAIN/README.md" "$WORKTREES/coder/$1/README.md"
 }
+
+# from_deleted_cwd <cmd...>: run <cmd> from a working directory removed after entering it, as a
+# caller whose directory another process has since deleted; the caller's own cwd stays put.
+from_deleted_cwd() (
+  mkdir -p "$BATS_TEST_TMPDIR/gone" && cd "$BATS_TEST_TMPDIR/gone" && rmdir "$BATS_TEST_TMPDIR/gone" && "$@"
+)

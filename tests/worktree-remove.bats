@@ -117,6 +117,13 @@ merged_output() { printf '%s\n' "worktrees_removed=$1" "branches_deleted=$2" "br
   [ -z "$output" ]
 }
 
+@test "worktree-remove.sh called from a deleted working directory still validates the branch through -C and reaches 'no such branch'" {
+  run --separate-stderr from_deleted_cwd "$SCRIPTS/worktree-remove.sh" -C "$MAIN" nosuch
+  assert_status 1
+  [[ "$stderr" == *"no such branch 'nosuch'"* ]]
+  [ -z "$output" ]
+}
+
 @test "worktree-remove.sh --orphans deletes an orphan whose regular files are all known blobs, skipping its .git file" {
   exclude_worktrees
   mkdir -p "$WORKTREES/stale/docs"
@@ -153,6 +160,66 @@ merged_output() { printf '%s\n' "worktrees_removed=$1" "branches_deleted=$2" "br
   assert_output_is "$(printf '%s\n' "orphans_removed=0" "orphans_kept=0")"
   [ -z "$(worktree_of_branch feat)" ]
   [ ! -e "$WORKTREES" ]
+}
+
+@test "worktree-remove.sh --orphans judges the directories under an unregistered coder/ one by one: the known-blob one goes, the one holding an unknown file stays and is named" {
+  known_orphan old
+  mkdir -p "$WORKTREES/coder/bad"
+  printf 'not in any commit\n' > "$WORKTREES/coder/bad/notes.txt"
+  run --separate-stderr "$SCRIPTS/worktree-remove.sh" -C "$MAIN" --orphans
+  assert_status 1
+  assert_output_is "$(printf '%s\n' "orphans_removed=1" "orphans_kept=1")"
+  [ ! -e "$WORKTREES/coder/old" ]
+  [ "$(cat "$WORKTREES/coder/bad/notes.txt")" = 'not in any commit' ]
+  [[ "$stderr" == *"kept $WORKTREES/coder/bad (unknown files)"* ]]
+  [[ "$stderr" == *"unknown file $WORKTREES/coder/bad/notes.txt"* ]]
+}
+
+@test "worktree-remove.sh --orphans descends past a directory whose own files are known and keeps only the subdirectory holding the unknown file, naming it" {
+  exclude_worktrees
+  mkdir -p "$WORKTREES/x/sub"
+  cp "$MAIN/README.md" "$WORKTREES/x/known.txt"
+  printf 'not in any commit\n' > "$WORKTREES/x/sub/unknown"
+  run --separate-stderr "$SCRIPTS/worktree-remove.sh" -C "$MAIN" --orphans
+  assert_status 1
+  assert_output_is "$(printf '%s\n' "orphans_removed=0" "orphans_kept=1")"
+  [[ "$stderr" == *"kept $WORKTREES/x/sub (unknown files)"* ]]
+  [[ "$stderr" == *"unknown file $WORKTREES/x/sub/unknown"* ]]
+  [ -f "$WORKTREES/x/known.txt" ]
+  [ -f "$WORKTREES/x/sub/unknown" ]
+}
+
+@test "worktree-remove.sh --orphans removes and keeps the orphans beside a registered coder/ worktree one by one and leaves that worktree registered and intact" {
+  add_linked coder/live
+  known_orphan old
+  mkdir -p "$WORKTREES/coder/bad"
+  printf 'not in any commit\n' > "$WORKTREES/coder/bad/notes.txt"
+  run --separate-stderr "$SCRIPTS/worktree-remove.sh" -C "$MAIN" --orphans
+  assert_status 1
+  assert_output_is "$(printf '%s\n' "orphans_removed=1" "orphans_kept=1")"
+  [ ! -e "$WORKTREES/coder/old" ]
+  [ -f "$WORKTREES/coder/bad/notes.txt" ]
+  [ "$(worktree_of_branch coder/live)" = "$WORKTREES/coder/live" ]
+  [ -f "$WORKTREES/coder/live/README.md" ]
+  [ -z "$(git -C "$WORKTREES/coder/live" status --porcelain)" ]
+}
+
+@test "worktree-remove.sh --orphans removes an orphan of 2000 known-blob files within 15 s" {
+  exclude_worktrees
+  mkdir -p "$WORKTREES/big"
+  content=$(cat "$MAIN/README.md")
+  i=0
+  while [ "$i" -lt 2000 ]; do
+    i=$((i + 1))
+    printf '%s\n' "$content" > "$WORKTREES/big/file-$i.txt"
+  done
+  t0=$(date +%s)
+  run --separate-stderr "$SCRIPTS/worktree-remove.sh" -C "$MAIN" --orphans
+  elapsed=$(( $(date +%s) - t0 ))
+  assert_status 0
+  assert_output_is "$(printf '%s\n' "orphans_removed=1" "orphans_kept=0")"
+  [ ! -e "$WORKTREES/big" ]
+  [ "$elapsed" -le 15 ] || { printf 'the sweep took %s s\n' "$elapsed" >&2; return 1; }
 }
 
 @test "worktree-remove.sh exits 2 when a branch and --orphans are both given" {

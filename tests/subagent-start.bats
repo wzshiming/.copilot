@@ -224,6 +224,21 @@ EOF
   [ "$(worktree_of_branch "coder/$ID")" = "$WORKTREES/coder/$ID" ]
 }
 
+@test "subagent-start.sh sweeps the orphans of the JSON cwd's repository and leaves the process cwd's orphan in place" {
+  known_orphan old
+  other="$BATS_TEST_TMPDIR/other"
+  init_repo "$other"
+  mkdir -p "$other/.worktrees/coder/old"
+  cp "$other/README.md" "$other/.worktrees/coder/old/README.md"
+  run_hook "$START" "$(hook_input SubagentStart "$ID" "$other")" "$MAIN"
+  assert_status 0
+  context_is "$(facts "coder/$ID" "$other")"
+  [ ! -e "$other/.worktrees/coder/old" ]
+  [ -f "$WORKTREES/coder/old/README.md" ]
+  [ -d "$other/.worktrees/coder/$ID" ]
+  [ ! -e "$WORKTREES/coder/$ID" ]
+}
+
 @test "subagent-start.sh and subagent-stop.sh are executable" {
   [ -x "$HOOKS/subagent-start.sh" ]
   [ -x "$HOOKS/subagent-stop.sh" ]
