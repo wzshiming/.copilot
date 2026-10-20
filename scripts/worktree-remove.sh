@@ -11,12 +11,13 @@ branch when git agrees, when <base> (--base, else the remote's default branch)
 contains it, or always with --force-delete-branch; prints removed=<path>|none
 and branch=deleted|kept-unmerged|kept. --orphans deletes each unregistered
 non-empty directory under .worktrees whose files are all blobs the repository
-already has, keeps and lists the others, prunes, clears empty directories, and
-prints orphans_removed= and orphans_kept=. --merged prunes, then for every
-branch under <namespace>/ (never <ref>'s own branch) that <ref> contains by
-ancestry or by patch equivalence (git cherry) removes its clean registered
-worktree and deletes the branch, keeps and lists on stderr the others (unmerged,
-dirty worktree, main checkout, worktree remove failed), and prints
+already has, keeps and lists on stderr the ones directly holding other files,
+judges the subdirectories of the rest the same way, prunes, clears empty
+directories, and prints orphans_removed= and orphans_kept=. --merged prunes,
+then for every branch under <namespace>/ (never <ref>'s own branch) that <ref>
+contains by ancestry or by patch equivalence (git cherry) removes its clean
+registered worktree and deletes the branch, keeps and lists on stderr the others
+(unmerged, dirty worktree, main checkout, worktree remove failed), and prints
 worktrees_removed=, branches_deleted= and branches_kept=. Every form runs under
 <git-common-dir>/worktree-scripts.lock, waiting up to 10 s for another worktree
 script on the repository. Exit 0 once <branch>'s removal is done whatever
@@ -103,32 +104,69 @@ EOF
   printf '%s\n' "$_rel"
 }
 
-# each topmost unregistered non-empty directory under $1, one per line
-orphan_dirs() {
+# 0 when some non-directory entry lies under $1
+holds_entries() { [ -n "$(find "$1" ! -type d -print | head -n 1)" ]; }
+
+# judge each unregistered directory under $1 that holds entries, recursing through the parents of
+# registered worktrees and never into a registered one
+sweep() {
   for _c in "$1"/* "$1"/.[!.]* "$1"/..?*; do
     if [ ! -d "$_c" ] || [ -L "$_c" ]; then continue; fi
     case "$(relation "$_c")" in
-      parent) orphan_dirs "$_c" ;;
-      other) [ -z "$(find "$_c" -type f -print | head -n 1)" ] || printf '%s\n' "$_c" ;;
+      parent) sweep "$_c" ;;
+      other) if holds_entries "$_c"; then judge "$_c"; fi ;;
     esac
   done
 }
 
-# 0 when every file under $1 is a blob of the repository (the .git gitfile aside); the others go to stderr
-all_known() {
-  _files=$(find "$1" ! -type d -print)
-  _ok=0
+# a path holding a newline or CR, which no git --stdin-paths line can carry
+nl='
+'
+cr=$(printf '\r')
+odd="*[$nl$cr]*"
+
+# each entry under $1 that is not a blob of the repository, one per line: a regular file whose blob
+# the repository lacks (the .git gitfile aside), a non-regular entry, or an odd path (shown with ?);
+# one hash-object and one cat-file judge the regular files, one the hashing dropped being unknown
+unknown_under() {
+  find "$1" -path "$odd" -prune -exec sh -c 'for f; do printf "%s" "$f" | tr "\n\r" "??"; echo; done' sh {} +
+  find "$1" ! -path "$odd" ! -type d ! -type f -print
+  _files=$(find "$1" ! -path "$odd" -type f ! -name .git -print)
   [ -n "$_files" ] || return 0
+  _check=$(printf '%s\n' "$_files" | git -C "$main_root" hash-object --stdin-paths 2>/dev/null \
+    | git -C "$main_root" cat-file --batch-check 2>/dev/null)
+  printf '%s\n--\n%s\n' "$_check" "$_files" | awk '
+    !files { if ($0 == "--") files = 1; else known[++n] = ($0 ~ / blob /); next }
+    !known[++m]'
+}
+
+# the lines of stdin naming a direct entry of $1 rather than a deeper one
+direct_of() {
   while IFS= read -r _f; do
-    case $_f in */.git) if [ -f "$_f" ] && [ ! -L "$_f" ]; then continue; fi ;; esac
-    if [ -f "$_f" ] && [ ! -L "$_f" ] && _sha=$(git -C "$main_root" hash-object -- "$_f" 2>/dev/null) \
-      && git -C "$main_root" cat-file -e "$_sha" 2>/dev/null; then continue; fi
-    printf '%s: unknown file %s\n' "$prog" "$_f" >&2
-    _ok=1
-  done <<EOF
-$_files
-EOF
-  return "$_ok"
+    case $_f in "$1"/*/*) ;; *) printf '%s\n' "$_f" ;; esac
+  done
+}
+
+# rm -rf the unregistered $1 when every entry under it is a known blob; keep it whole, listed on stderr,
+# when it directly holds an unknown entry; else judge each of its subdirectories that holds entries
+judge() {
+  _unknown=$(unknown_under "$1")
+  if [ -z "$_unknown" ]; then
+    case $1 in "$wtroot"/?*) rm -rf -- "$1" ;; esac
+    removed=$((removed + 1))
+    return 0
+  fi
+  _direct=$(printf '%s\n' "$_unknown" | direct_of "$1")
+  if [ -n "$_direct" ]; then
+    printf '%s: kept %s (unknown files)\n' "$prog" "$(printf '%s' "$1" | tr '\n\r' '??')" >&2
+    printf '%s\n' "$_direct" | while IFS= read -r _f; do printf '%s: unknown file %s\n' "$prog" "$_f" >&2; done
+    kept=$((kept + 1))
+    return 0
+  fi
+  for _e in "$1"/* "$1"/.[!.]* "$1"/..?*; do
+    if [ ! -d "$_e" ] || [ -L "$_e" ]; then continue; fi
+    if holds_entries "$_e"; then judge "$_e"; fi
+  done
 }
 
 # rmdir every directory left empty under $1 bottom-up, $1 included, never inside a registered worktree
@@ -153,20 +191,7 @@ clear_parents() {
 if [ -n "$orphans" ]; then
   registered=$(printf '%s\n' "$list" | sed -n 's/^worktree //p')
   removed=0 kept=0
-  found=$(orphan_dirs "$wtroot")
-  if [ -n "$found" ]; then
-    while IFS= read -r _o; do
-      if all_known "$_o"; then
-        case $_o in "$wtroot"/?*) rm -rf -- "$_o" ;; esac
-        removed=$((removed + 1))
-      else
-        printf '%s: kept %s (unknown files)\n' "$prog" "$_o" >&2
-        kept=$((kept + 1))
-      fi
-    done <<EOF
-$found
-EOF
-  fi
+  sweep "$wtroot"
   git -C "$main_root" worktree prune
   registered=$(git -C "$main_root" worktree list --porcelain | sed -n 's/^worktree //p')
   clear_empty "$wtroot"
