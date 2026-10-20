@@ -162,12 +162,14 @@ merged_output() { printf '%s\n' "worktrees_removed=$1" "branches_deleted=$2" "br
   [ ! -e "$WORKTREES" ]
 }
 
-@test "worktree-remove.sh --orphans judges the directories under an unregistered coder/ one by one: the known-blob one goes, the one holding an unknown file stays and is named" {
+@test "worktree-remove.sh --orphans judges the directories under an unregistered coder/ one by one without descending into a kept directory: the known-blob one goes, the one holding an unknown file stays whole and is named" {
   known_orphan old
-  mkdir -p "$WORKTREES/coder/bad"
+  mkdir -p "$WORKTREES/coder/bad/sub"
   printf 'not in any commit\n' > "$WORKTREES/coder/bad/notes.txt"
+  cp "$MAIN/README.md" "$WORKTREES/coder/bad/sub/README.md"
   run --separate-stderr "$SCRIPTS/worktree-remove.sh" -C "$MAIN" --orphans
   assert_status 1
+  [ -f "$WORKTREES/coder/bad/sub/README.md" ]
   assert_output_is "$(printf '%s\n' "orphans_removed=1" "orphans_kept=1")"
   [ ! -e "$WORKTREES/coder/old" ]
   [ "$(cat "$WORKTREES/coder/bad/notes.txt")" = 'not in any commit' ]
@@ -376,6 +378,12 @@ merged_output() { printf '%s\n' "worktrees_removed=$1" "branches_deleted=$2" "br
   assert_status 2
   [[ "$stderr" == *bad..ns* ]]
   [ -z "$output" ]
+}
+
+@test "worktree-remove.sh called from a deleted working directory still validates the namespace through -C and sweeps --merged" {
+  run --separate-stderr from_deleted_cwd "$SCRIPTS/worktree-remove.sh" -C "$MAIN" --merged origin/master coder
+  assert_status 0
+  assert_output_is "$(merged_output 0 0 0)"
 }
 
 @test "worktree-remove.sh --merged exits 1 for an unresolvable ref and deletes nothing" {
