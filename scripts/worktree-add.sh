@@ -31,7 +31,7 @@ while [ $# -gt 0 ]; do
   shift
 done
 [ -n "$branch" ] || usage_error "missing <branch>"
-git check-ref-format --branch "$branch" >/dev/null 2>&1 || usage_error "invalid branch name '$branch'"
+git -C "$path" check-ref-format --branch "$branch" >/dev/null 2>&1 || usage_error "invalid branch name '$branch'"
 
 # Serialize the worktree scripts on one repository: <git-common-dir>/worktree-scripts.lock
 # names the holder's pid; it is created by hard link so it is never seen empty, a lock whose

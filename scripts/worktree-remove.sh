@@ -44,12 +44,12 @@ while [ $# -gt 0 ]; do
 done
 if [ -n "$merged" ]; then
   [ -z "$branch$base$force$orphans" ] || usage_error "--merged takes no branch and no other option"
-  git check-ref-format --branch "$namespace" >/dev/null 2>&1 || usage_error "invalid namespace '$namespace'"
+  git -C "$path" check-ref-format --branch "$namespace" >/dev/null 2>&1 || usage_error "invalid namespace '$namespace'"
 elif [ -n "$orphans" ]; then
   [ -z "$branch$base$force" ] || usage_error "--orphans takes no branch and no other option"
 else
   [ -n "$branch" ] || usage_error "missing <branch>"
-  git check-ref-format --branch "$branch" >/dev/null 2>&1 || usage_error "invalid branch name '$branch'"
+  git -C "$path" check-ref-format --branch "$branch" >/dev/null 2>&1 || usage_error "invalid branch name '$branch'"
 fi
 
 # Serialize the worktree scripts on one repository: <git-common-dir>/worktree-scripts.lock
