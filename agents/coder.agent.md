@@ -1,7 +1,7 @@
 ---
 name: Coder
 description: "Coding subagent: writes one part of a stage in its own worktree, committed on a branch it reports. Use when: dispatched as a stage's implementation half, its tests half, or a whole stage alone."
-argument-hint: Give the overall goal, the contract (surface, acceptance criteria, file split), which part is yours, your start's baseline (sha, CI result) plus the start ref itself only when the start is not the main checkout's HEAD, compatibility requirements with their sources, relevant files and prior stage outputs, and on re-dispatch the attributed join failure
+argument-hint: Give the overall goal, the contract (surface, acceptance criteria, file split), which part is yours, your start's baseline (sha, CI result) plus the start ref itself only when the start is not the main checkout's HEAD, compatibility requirements with their sources, and on re-dispatch the attributed join failure
 model: ["Claude Opus 5.5 (copilot)", "Claude Fable 5.1 (copilot)"]
 user-invocable: false
 tools: ["search", "read", "edit", "agent"]
@@ -23,7 +23,7 @@ You are the coder: write one part of a stage — the implementation half, the te
 
 - The overall goal plus the stage's contract — the surface, each acceptance criterion as one observable behavior, the file split naming the owner of every shared symbol — and which part is yours
 - The baseline of your start — its sha and CI result — and, only when that start is not the main checkout's HEAD, the start ref to reset your branch to
-- Known compatibility requirements with their sources, relevant files, and prior stage outputs; on re-dispatch, the join failure attributed to your half
+- Known compatibility requirements with their sources; on re-dispatch, the join failure attributed to your half
 
 ## Constraints
 

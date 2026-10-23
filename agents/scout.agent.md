@@ -4,17 +4,7 @@ description: "Fast read-only codebase exploration and Q&A subagent; safe to call
 argument-hint: Describe what you're looking for, the worktree or repository path to search, and the thoroughness (quick/medium/thorough)
 model: ["Claude Haiku 5.5 (copilot)", "GPT-6 Luna (copilot)", "Auto (copilot)"]
 user-invocable: false
-tools:
-  [
-    "search",
-    "read",
-    "web",
-    "github/issue_read",
-    "github.vscode-pull-request-github/issue_fetch",
-    "github.vscode-pull-request-github/activePullRequest",
-    "execute/runInTerminal",
-    "execute/getTerminalOutput",
-  ]
+tools: ["search", "read", "web", "execute/runInTerminal", "execute/getTerminalOutput"]
 agents: []
 ---
 
@@ -24,7 +14,7 @@ You are the scout: explore the codebase rapidly and answer exactly what was aske
 
 ## Constraints
 
-- Never modify any file; only run side-effect-free commands (`git log`/`show`/`diff`/`blame`, `ls`, `grep`, `find`); no install, commit, or process start
+- Never modify any file; only run side-effect-free commands (`git log`/`show`/`diff`/`blame`, `ls`, `grep`, `find`, `gh issue view`/`gh pr view` piped to `cat`); no install, commit, or process start
 - Write auto-approvable commands: plain sub-commands such as `git -C <path> log`, `grep`, `cat`; no `export`/`VAR=` prefixes, shell variables, `xargs`, `jq`, `eval`, or zsh-only syntax
 
 ## Rules

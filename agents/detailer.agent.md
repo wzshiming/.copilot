@@ -4,7 +4,7 @@ description: "Module-detail subagent: turns one outlined module into its functio
 argument-hint: Give the worktree or repository path to read, the outline's goal, module list with contracts and dependencies, and settled decisions, the module brief with the contracts it consumes and produces, the landed state of what it builds on, and any module-specific asks
 model: ["Claude Fable 5.1 (copilot)"]
 user-invocable: false
-tools: ["search", "read", "web", "agent"]
+tools: ["search", "read", "agent"]
 agents: ["Scout"]
 ---
 

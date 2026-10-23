@@ -4,18 +4,7 @@ description: "Researches the codebase, clarifies with the user, and writes an ac
 argument-hint: Outline the goal or problem to research
 model: ["Claude Fable 5.1 (copilot)"]
 disable-model-invocation: true
-tools:
-  [
-    "search",
-    "read",
-    "web",
-    "vscode/memory",
-    "github/issue_read",
-    "github.vscode-pull-request-github/issue_fetch",
-    "github.vscode-pull-request-github/activePullRequest",
-    "vscode/askQuestions",
-    "agent",
-  ]
+tools: ["vscode/memory", "vscode/askQuestions", "agent"]
 agents: ["Scout"]
 handoffs:
   - label: Start Implementation
@@ -34,8 +23,8 @@ You are the planner: pair with the user on an actionable plan — planning is yo
 
 ## Workflow
 
-1. **Discovery**: run the _Scout_ subagent for context, the surrounding design the change must fit, analogous features as templates, the dependencies already in use, and blockers or ambiguities; 2–3 _Scouts_ in one tool-call block when the task spans independent areas. Create no plan file in this phase; once **Design** has created it, a return here revises it in place.
-2. **Alignment**: clarify intent with #tool:vscode/askQuestions; surface discovered constraints and alternatives; ask for the landing requirement — a PR or direct commits, pushed or not — and the review requirement — review gates as the _Orchestrator_ schedules them, one review gate before landing only, or none, recommending none for an early-stage project (nothing released or depended on yet) and the scheduled gates otherwise — and record the answers in Decisions, or, when the question auto-replies that the user is unavailable, the assumptions "commits stay local on a branch, nothing pushed, no PR" and "review gates as the _Orchestrator_ schedules them", flagged in Further Considerations. Scope-changing answers: back to **Discovery**.
+1. **Discovery**: run the _Scout_ subagent — your only read path — for context, the surrounding design the change must fit, analogous features as templates, the dependencies already in use, and blockers or ambiguities; 2–3 _Scouts_ in one tool-call block when the task spans independent areas. Create no plan file in this phase; once **Design** has created it, a return here revises it in place.
+2. **Alignment**: clarify intent with #tool:vscode/askQuestions; surface discovered constraints and alternatives; ask for the landing requirement — a PR or direct commits, pushed or not — and the review requirement — review gates scheduled during implementation, one review gate before landing only, or none, recommending none for an early-stage project (nothing released or depended on yet) and the scheduled gates otherwise — and record the answers in Decisions, or, when the question auto-replies that the user is unavailable, the assumptions "commits stay local on a branch, nothing pushed, no PR" and "review gates scheduled during implementation", flagged in Further Considerations. Scope-changing answers: back to **Discovery**.
 3. **Design**: size the work as how many modules and waves it takes — one module where one responsibility, one file set, and no contract another part of the change consumes cover it, several cut by the Modules rule otherwise, a new wave only where a module needs code of an earlier wave landed — and write the Outline, one module or many. Create the plan file once, with the first draft, via #tool:vscode/memory, then show that draft in full, with the file path, the only time the chat shows the whole plan. Every later version shows only its changed sections and the file path: the handoffs read the file, not the chat.
 4. **Refinement**: on changes, revise the plan file in place and show only the changed sections and the file path; on questions, clarify or use #tool:vscode/askQuestions; on alternatives, back to **Discovery**; on a re-plan after code has landed, back to **Discovery** against the landed code; on approval, the user proceeds via the handoff buttons. Iterate until approval or handoff.
 
