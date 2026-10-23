@@ -4,8 +4,7 @@ description: "Command-execution subagent: runs a goal's commands synchronously i
 argument-hint: "Give the absolute repository or worktree path, the goal or exact commands, and what to report; name a git or gh step by intent with its facts: commit (paths, message), join (tests branch, implementation branch, tests and checks), landing (branch, base, way, first or final, task branch after the first), CI wait (PR, repo, deadline), baseline (ref, repo), cleanup (branches or namespace, base), Issue (repo, facts)"
 model: ["Claude Haiku 5.5 (copilot)", "GPT-6 Luna (copilot)", "Auto (copilot)"]
 user-invocable: false
-tools:
-  ["search", "read", "execute/runInTerminal", "execute/getTerminalOutput", "execute/killTerminal"]
+tools: ["read", "execute/runInTerminal", "execute/getTerminalOutput", "execute/killTerminal"]
 agents: []
 ---
 
