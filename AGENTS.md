@@ -4,7 +4,7 @@ Personal agents repository — agent definitions plus the scripts they run, no a
 
 ## Structure
 
-Only `.github/`, `agents/`, `hooks/`, `scripts/`, `tests/`, dotfiles, root Markdown docs, `LICENSE`, and `Makefile` are tracked; everything else at the root is local runtime state excluded by the `.gitignore` whitelist.
+Only `.github/`, `agents/`, `scripts/`, `tests/`, dotfiles, root Markdown docs, `LICENSE`, and `Makefile` are tracked; everything else at the root is local runtime state excluded by the `.gitignore` whitelist.
 
 ### Scripts
 
@@ -13,23 +13,16 @@ Only `.github/`, `agents/`, `hooks/`, `scripts/`, `tests/`, dotfiles, root Markd
 - Exit codes: `0` done, `1` refused or failed, `2` usage error; a script's `--help` may define more (`ci-wait.sh`: `3` still pending at the deadline); results print as `key=value` lines, a listing (`worktree-status.sh`) as one line per item, a watcher as one progress line per poll plus the final table; `--help` prints one paragraph.
 - Tests live in `tests/<name>.bats` (bats-core); reusable fake commands live in `tests/mock/<cmd>`, never as stubs written inside a single `.bats` file.
 
-### Hooks
-
-- Each hook lives in `hooks/<event>.sh` as POSIX sh (`#!/bin/sh`, executable, clean under `shellcheck -s sh`, no node, jq, or network), shares `hooks/lib.sh`, reads the harness's JSON event on stdin, composes this checkout's `scripts/` (`../scripts/` relative to itself), and is tested in `tests/<event>.bats`.
-- A hook is registered only in the `hooks:` frontmatter of the agent whose lifecycle it manages — the Coder: `SubagentStart` creates `.worktrees/coder/<agent-id>` on branch `coder/<agent-id>` from the main checkout's HEAD and injects worktree, branch, base_sha, and main_root into the Coder; `SubagentStop` blocks once on a dirty tree so the Coder commits or discards, then removes the worktree (a tree still dirty at the second stop stays for the cleanup intent) and keeps the branch (one whose tip HEAD already contains is deleted); both hooks also run `worktree-remove.sh --orphans`, because VS Code's Keep re-saves a Coder's accepted edits into its removed worktree path as plain files, which the sweep deletes once every file is a blob the repository has; a Stop that never fires (cancelled or dead dispatch) leaves both for the resume's Executor inventory and the cleanup intent, nothing automatic.
-- An entry carries no `cwd` — the harness runs a hook via `/bin/sh -c` in the entry's `cwd`, defaulting to the workspace's first folder, and overwrites the event's `cwd` with it, so a fixed one would pin every Coder to one repository — and no `timeout`, which the frontmatter parser drops (a scalar arrives as a string), leaving the 30 s default; the hooks thus assume a single-root workspace whose folder is the target repository, and a multi-root workspace or another root gives the Coder `no worktree: <reason>` and it stops.
-- Frontmatter hooks of a user-level agent file run only with `chat.useHooks` (default on) in a trusted workspace, for the agent whose frontmatter names them, never its dispatcher; agent files are read from the main checkout's `~/.copilot/agents/`, so a hook change takes effect once that checkout carries it.
-
 ### Agents
 
-- Each agent lives in `agents/<name>.agent.md` with YAML frontmatter. Every agent has `name`, `description`, `argument-hint`, `model` (fallback list), and `agents` (dispatchable subagents); `tools`, `user-invocable`, `disable-model-invocation`, `handoffs`, and `hooks` are used where applicable.
+- Each agent lives in `agents/<name>.agent.md` with YAML frontmatter. Every agent has `name`, `description`, `argument-hint`, `model` (fallback list), and `agents` (dispatchable subagents); `tools`, `user-invocable`, `disable-model-invocation`, and `handoffs` are used where applicable.
 - `handoffs` link user-invocable agents along meaningful transitions only and are all manual — never set `send: true`: Autopilot auto-fires the first `send` handoff after every response and can loop agents. Prompts are inserted verbatim (no `${…}` substitution) into the same session, so they name only what is handed over plus facts the target cannot see (e.g. ledger paths); the target agent's body supplies the method.
 - Challenger and Reviewer share one verbatim `## Constraints` block and the quoted fit question; Coder, Orchestrator, and that block share the Executor-dispatch sentence; Scout and Executor share the auto-approval bullet; Planner and Detailer share the Modules rule; Planner, Orchestrator, and Challenger share the Language rule and the Parallel dispatch rule — there is no include mechanism, so edit every copy together.
 
 ## Checks
 
 - `make check` — Prettier format check + markdownlint + shellcheck + bats, the full suite.
-- `make lint` — markdownlint on Markdown + `shellcheck -s sh` on `scripts/*.sh` and `hooks/*.sh`.
+- `make lint` — markdownlint on Markdown + `shellcheck -s sh` on `scripts/*.sh`.
 - `make test` — bats-core on `tests/*.bats`.
 - `make format` — Prettier rewrites Markdown.
 - These targets, or the commands they run on specific files, may run locally without asking.
@@ -37,7 +30,7 @@ Only `.github/`, `agents/`, `hooks/`, `scripts/`, `tests/`, dotfiles, root Markd
 
 ## Conventions
 
-- Agents orchestrate, Executor executes: a body holds its flow plus only its role's knowledge; the git/gh workflow lives only in Executor's Rules (a Coder's worktree lifecycle in `hooks/`), each fixed multi-command flow is a script in `scripts/`, and dispatchers name a git/gh step by its intent alone, the exceptions being Coder's own `git add`/`git commit`, `git reset --hard <start ref>`, and `git restore`/`rm` (its Constraints and Approach); no body restates the harness base prompt.
+- Agents orchestrate, Executor executes: a body holds its flow plus only its role's knowledge; the git/gh workflow lives only in Executor's Rules (a Coder's worktree created and released through its Worktree rule), each fixed multi-command flow is a script in `scripts/`, and dispatchers name a git/gh step by its intent alone (the Coder's `worktree` and `release` dispatches among them), the exceptions being Coder's own `git add`/`git commit` and `git restore`/`rm` (its Constraints and Approach); no body restates the harness base prompt.
 - Agent bodies open with one sentence in normal case, `You are the <role>: <mission>.` — no shouted words.
 - Agent body sections are H2 only, one per name, in this order and only when needed: Input, Constraints, Approach (a subagent's checklist) or Workflow (the Orchestrator's and Planner's phase loop), Rules, Output Format.
 - List items are fragments or single sentences without a terminal period — split an item rather than write two sentences in it; only Workflow phase items are paragraphs with a bold `**Phase**:` label and full punctuation, every other label is plain `Label:`.
@@ -46,7 +39,7 @@ Only `.github/`, `agents/`, `hooks/`, `scripts/`, `tests/`, dotfiles, root Markd
 - Shell: auto-approvable and self-contained; a fixed flow is one script call, approvable whole; no `export …;` preamble or `VAR=… cmd` prefix and no zsh-only syntax; guards are flags, not environment; `gh` output piped; watchers included in the foreground rather than redirected (Executor's Constraints and Rules, the shared auto-approval bullet).
 - Testing: the full suite runs on CI as the merge gate and local runs stay targeted — the baseline is the start commit's CI result, else one local run, and a local full run comes only before a landing to no PR or when CI is unreachable (Executor's CI and Landing rules, `scripts/ci-wait.sh`).
 - Execution: only Scout (side-effect-free reads) and Executor run terminal commands, each naming its `execute/<tool>` entries instead of the `execute` set; Coder, Orchestrator, Reviewer, and Challenger dispatch Executor by its `argument-hint`, one dispatch per step; destructive commands only when named (Executor's Constraints and Rules, the shared Executor-dispatch sentence).
-- Implementation: the Orchestrator classifies each stage as a tests/implementation pair or one Coder and records its contract and file split in the ledger (its Execute); a Coder's part exists only as its hook-worktree branch (`hooks/`); Executor joins, lands, and cleans up by branch, combining only by rebase and fast-forward, never a merge commit (its Join and Landing rules, `scripts/worktree-*.sh`).
+- Implementation: the Orchestrator classifies each stage as a tests/implementation pair or one Coder and records its contract and file split in the ledger (its Execute); a Coder creates and releases its worktree through Executor, so its part exists only as the branch it reports (Executor's Worktree rule, Coder's Worktree and Release steps); Executor joins, lands, and cleans up by branch, combining only by rebase and fast-forward, never a merge commit (its Join and Landing rules, `scripts/worktree-*.sh`).
 - Review: the review requirement is the user's choice among review gates as the Orchestrator schedules them (the default), one review gate before landing only, or none; Reviewer runs at the gates only and Challenger only when the user asks or a gate fails three Reviewer rounds (Orchestrator's Intake and Verify, Planner's Alignment).
 - Design: Planner and Detailer design from the whole by criteria that live only in the Modules rule; the Orchestrator decomposes the design; Coder implements the contract, reporting rather than writing a patch or restructuring the plan did not foresee; Reviewer and Challenger ask the fit question against the plan's decisions and criteria (their Approach).
 - Planning: the Planner's Outline, approved by the user, is the only plan format, and the Orchestrator's Detailers detail each wave, every Module Detail becoming the ledger's stage contract (their Output Formats are the single home of both; Orchestrator's Intake and Advance); the Orchestrator alone lists Detailer in `agents`, and Detailer dispatches only Scout.
