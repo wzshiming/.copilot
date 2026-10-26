@@ -130,65 +130,6 @@ count_lines_matching() {
   printf '%s\n' "${lines[@]}" | grep -c -- "$1" || true
 }
 
-# --- hooks/subagent-*.sh tests: the hooks dir of this checkout, harness-shaped input,
-# a runner, and a reader of the JSON answer (node comes along with npx bats).
-
-HOOKS="$BATS_TEST_DIRNAME/../hooks"
-
-# json_escape <text>: <text> as the body of a JSON string, backslash and double quote escaped.
-json_escape() {
-  local s=$1
-  s=${s//\\/\\\\}
-  s=${s//\"/\\\"}
-  printf '%s' "$s"
-}
-
-# hook_input <event> <agent_id> [cwd] [guard]: the harness's payload for <event> with
-# agent_type Coder; the cwd key only when <cwd> is given, stop_hook_active only when
-# <guard> (raw JSON, normally the literal true or false) is given.
-hook_input() {
-  local cwd='' guard=''
-  [ -z "${3-}" ] || cwd=$(printf ',"cwd":"%s"' "$(json_escape "$3")")
-  [ -z "${4-}" ] || guard=",\"stop_hook_active\":$4"
-  printf '{"hook_event_name":"%s","session_id":"c3d1e7a0-5b2f-4c8e-9a1d-7f6e5d4c3b2a","transcript_path":"/tmp/transcript.jsonl","timestamp":"2026-10-20T10:00:00.000Z"%s,"agent_id":"%s","agent_type":"Coder"%s}' \
-    "$1" "$cwd" "$(json_escape "$2")" "$guard"
-}
-
-# in_dir <dir> <cmd...>: run <cmd> with <dir> as its working directory.
-in_dir() ( cd "$1" && shift && "$@" )
-
-# run_hook <hook> <json> [cwd]: `run --separate-stderr` the hook at path <hook> with <json>
-# on stdin (empty <json> = empty stdin) from the process cwd <cwd>, MAIN by default.
-run_hook() {
-  printf '%s' "$2" > "$BATS_TEST_TMPDIR/hook-input.json"
-  run --separate-stderr in_dir "${3:-$MAIN}" "$1" < "$BATS_TEST_TMPDIR/hook-input.json"
-}
-
-# hook_json <dotted.path>: the field at <dotted.path> of the last run's stdout, which must be
-# exactly one JSON object; a string prints raw, anything else as JSON.
-hook_json() {
-  node -e '
-    var raw = process.argv[1], path = process.argv[2], v;
-    function fail(why) { console.error("hook_json: " + why + ": " + JSON.stringify(raw)); process.exit(1); }
-    try { v = JSON.parse(raw); } catch (e) { fail("stdout is not one JSON value"); }
-    if (v === null || typeof v !== "object" || Array.isArray(v)) fail("stdout is not a JSON object");
-    path.split(".").forEach(function (key) {
-      if (v === null || typeof v !== "object" || !(key in v)) fail("no " + path);
-      v = v[key];
-    });
-    process.stdout.write(typeof v === "string" ? v : JSON.stringify(v));
-  ' -- "$output" "$1"
-}
-
-# assert_hook_json <dotted.path> <expected>: that field of the last run's stdout is <expected>.
-assert_hook_json() {
-  local actual
-  actual=$(hook_json "$1") || return 1
-  [ "$actual" = "$2" ] && return 0
-  printf -- '--- expected %s ---\n%s\n--- actual ---\n%s\n' "$1" "$2" "$actual" >&2
-  return 1
-}
-
 # known_orphan <name>: the unregistered .worktrees/coder/<name> holding a copy of MAIN's README.md —
 # a blob the repository has, as VS Code's Keep leaves a removed Coder worktree's accepted edits.
 known_orphan() {
