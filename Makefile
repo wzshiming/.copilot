@@ -1,7 +1,7 @@
 PRETTIER := npx --yes prettier@3.9.6
 MARKDOWNLINT := npx --yes markdownlint-cli2@0.17.2
 BATS := npx --yes bats@1.13.0
-SHELLCHECK := shellcheck -s sh
+SHELLCHECK := shellcheck
 
 .PHONY: check format-check lint test format
 
@@ -12,7 +12,8 @@ format-check:
 
 lint:
 	$(MARKDOWNLINT) "**/*.md"
-	$(SHELLCHECK) scripts/*.sh
+	$(SHELLCHECK) -s sh scripts/*.sh tests/mock/*
+	$(SHELLCHECK) -s bash tests/helpers.bash
 
 test:
 	$(BATS) tests

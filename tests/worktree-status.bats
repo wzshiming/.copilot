@@ -12,6 +12,13 @@ setup() { setup_fixture; }
   [ -z "$output" ]
 }
 
+@test "worktree-status.sh exits 2 with 'no such directory' on stderr and nothing on stdout for a nonexistent -C path" {
+  run --separate-stderr "$SCRIPTS/worktree-status.sh" -C "$BATS_TEST_TMPDIR/missing"
+  assert_status 2
+  [[ "$stderr" == *"no such directory"* ]]
+  [ -z "$output" ]
+}
+
 @test "worktree-status.sh lists the main checkout alone as '<path>  master  main  clean  merged'" {
   run --separate-stderr "$SCRIPTS/worktree-status.sh" -C "$MAIN"
   assert_status 0
@@ -60,6 +67,34 @@ setup() { setup_fixture; }
   run --separate-stderr "$SCRIPTS/worktree-status.sh" -C "$MAIN" --base feat
   assert_status 0
   has_line "$WORKTREES/feat  feat  linked  clean  merged"
+}
+
+@test "worktree-status.sh exits 1 with 'does not resolve to a commit' on stderr and no partial listing for an unresolvable --base" {
+  add_linked feat
+  run --separate-stderr "$SCRIPTS/worktree-status.sh" -C "$MAIN" --base nosuch
+  assert_status 1
+  [[ "$stderr" == *"does not resolve to a commit"* ]]
+  [ -z "$output" ]
+}
+
+@test "worktree-status.sh exits 1 with 'does not resolve to a commit' and 'pass --base' on stderr and no listing when origin/HEAD points at a deleted origin/master" {
+  [ "$(git -C "$MAIN" symbolic-ref refs/remotes/origin/HEAD)" = refs/remotes/origin/master ]
+  git -C "$MAIN" update-ref -d refs/remotes/origin/master
+  run --separate-stderr "$SCRIPTS/worktree-status.sh" -C "$MAIN"
+  assert_status 1
+  [[ "$stderr" == *"base ref 'origin/master' does not resolve to a commit"* ]]
+  [[ "$stderr" == *"pass --base"* ]]
+  [ -z "$output" ]
+}
+
+@test "worktree-status.sh exits 1 with 'cannot compare' on stderr and no listing when a linked worktree's HEAD names no commit" {
+  add_linked feat
+  feat_gitdir=$(git -C "$WORKTREES/feat" rev-parse --path-format=absolute --git-dir)
+  printf '%s\n' 0000000000000000000000000000000000000000 > "$feat_gitdir/HEAD"
+  run --separate-stderr "$SCRIPTS/worktree-status.sh" -C "$MAIN"
+  assert_status 1
+  [[ "$stderr" == *"cannot compare $WORKTREES/feat with base 'origin/master'"* ]]
+  [ -z "$output" ]
 }
 
 @test "worktree-status.sh shows a detached worktree as detached@<7-char sha>" {
@@ -117,6 +152,32 @@ setup() { setup_fixture; }
   assert_status 0
   [ "${#lines[@]}" -eq 40 ]
   [ "${lines[39]}" = "+7 more" ]
+}
+
+@test "worktree-status.sh prints all 40 lines with no '+<N> more' when main plus 39 orphans exactly fill the cap" {
+  exclude_worktrees
+  for i in $(seq 1 39); do
+    mkdir -p "$WORKTREES/stale-$i"
+    printf 'x\n' > "$WORKTREES/stale-$i/f.txt"
+  done
+  run --separate-stderr "$SCRIPTS/worktree-status.sh" -C "$MAIN"
+  assert_status 0
+  [ "${#lines[@]}" -eq 40 ]
+  [[ "${lines[39]}" == "orphan: $WORKTREES/stale-"* ]]
+  [ "$(count_lines_matching '^orphan: ')" -eq 39 ]
+  [ "$(count_lines_matching ' more$')" -eq 0 ]
+}
+
+@test "worktree-status.sh ends with '+2 more' as line 40 when main plus 40 orphans overflow the cap by one" {
+  exclude_worktrees
+  for i in $(seq 1 40); do
+    mkdir -p "$WORKTREES/stale-$i"
+    printf 'x\n' > "$WORKTREES/stale-$i/f.txt"
+  done
+  run --separate-stderr "$SCRIPTS/worktree-status.sh" -C "$MAIN"
+  assert_status 0
+  [ "${#lines[@]}" -eq 40 ]
+  [ "${lines[39]}" = "+2 more" ]
 }
 
 @test "worktree-status.sh worktree lines follow '<path>  <ref>  main|linked  clean|dirty:<N>  merged|unmerged(<base>)|nobase'" {

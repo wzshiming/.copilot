@@ -27,20 +27,34 @@ setup() { setup_fixture; }
   fails git -C "$MAIN" config branch.feat.merge
 }
 
-@test "worktree-add.sh reports state=exists and changes nothing when the branch's worktree is at the conventional path" {
+@test "worktree-add.sh reports state=exists with an empty base, does not fetch, and changes nothing when the branch's worktree is at the conventional path" {
   add_linked feat
   list_before=$(git -C "$MAIN" worktree list --porcelain)
+  origin_before=$(git -C "$MAIN" rev-parse origin/master)
+  advance_origin master
   run --separate-stderr "$SCRIPTS/worktree-add.sh" -C "$MAIN" feat
   assert_status 0
   assert_output_is "$(printf '%s\n' \
     "worktree=$WORKTREES/feat" \
     "branch=feat" \
-    "base=origin/master" \
-    "base_sha=$(git -C "$MAIN" merge-base origin/master feat)" \
+    "base=" \
+    "base_sha=" \
     "main_root=$MAIN_ROOT" \
     "state=exists")"
+  [ "$(git -C "$MAIN" rev-parse origin/master)" = "$origin_before" ]
   [ "$(git -C "$MAIN" worktree list --porcelain)" = "$list_before" ]
-  [ "$(git -C "$MAIN" rev-parse feat)" = "$(git -C "$MAIN" rev-parse origin/master)" ]
+  [ "$(git -C "$MAIN" rev-parse feat)" = "$origin_before" ]
+}
+
+@test "worktree-add.sh reports state=exists in a repository with no remote at all" {
+  solo="$BATS_TEST_TMPDIR/solo"
+  init_repo "$solo"
+  solo_root=$(main_root_of "$solo")
+  git -C "$solo" worktree add -q "$solo_root/.worktrees/feat" -b feat
+  run --separate-stderr "$SCRIPTS/worktree-add.sh" -C "$solo" feat
+  assert_status 0
+  has_line "worktree=$solo_root/.worktrees/feat"
+  has_line "state=exists"
 }
 
 @test "worktree-add.sh attaches a branch that exists without a worktree and prints state=attached with an empty base" {
@@ -163,6 +177,31 @@ setup() { setup_fixture; }
   has_line "base_sha=$(git -C "$ORIGIN" rev-parse master)"
 }
 
+@test "worktree-add.sh infers the base from upstream's default branch over origin's" {
+  upstream="$BATS_TEST_TMPDIR/upstream.git"
+  git init -q --bare -b main "$upstream"
+  git -C "$BATS_TEST_TMPDIR/seed" push -q "$upstream" master:main
+  git -C "$MAIN" remote add upstream "$upstream"
+  git -C "$MAIN" fetch -q upstream
+  git -C "$MAIN" remote set-head upstream main
+  run --separate-stderr "$SCRIPTS/worktree-add.sh" -C "$MAIN" feat
+  assert_status 0
+  has_line "base=upstream/main"
+  has_line "base_sha=$(git -C "$MAIN" rev-parse upstream/main)"
+  [ "$(git -C "$MAIN" rev-parse feat)" = "$(git -C "$MAIN" rev-parse upstream/main)" ]
+}
+
+@test "worktree-add.sh refuses with 'fetch from origin failed' when origin is unreachable and leaves no branch, worktree, or lock" {
+  git -C "$MAIN" remote set-url origin "$BATS_TEST_TMPDIR/nowhere.git"
+  run --separate-stderr "$SCRIPTS/worktree-add.sh" -C "$MAIN" feat
+  assert_status 1
+  [[ "$stderr" == *"fetch from origin failed"* ]]
+  fails branch_exists feat
+  [ ! -e "$WORKTREES/feat" ]
+  [ ! -e "$(lock_path)" ]
+  [ -z "$(lock_entries)" ]
+}
+
 @test "worktree-add.sh refuses an unresolvable base-ref" {
   run --separate-stderr "$SCRIPTS/worktree-add.sh" -C "$MAIN" feat origin/nope
   assert_status 1
@@ -211,6 +250,25 @@ setup() { setup_fixture; }
   [ ! -e "$WORKTREES" ]
 }
 
+@test "worktree-add.sh exits 1 naming 'not a git repository' when -C is a directory outside any repository" {
+  plain="$BATS_TEST_TMPDIR/plain"
+  mkdir "$plain"
+  run --separate-stderr "$SCRIPTS/worktree-add.sh" -C "$plain" feat
+  assert_status 1
+  [[ "$stderr" == *"not a git repository"* ]]
+  [ -z "$output" ]
+  [ -z "$(ls -A "$plain")" ]
+}
+
+@test "worktree-add.sh exits 2 naming 'no such directory' when the -C path does not exist" {
+  missing="$BATS_TEST_TMPDIR/missing"
+  run --separate-stderr "$SCRIPTS/worktree-add.sh" -C "$missing" feat
+  assert_status 2
+  [[ "$stderr" == *"no such directory"* ]]
+  [ -z "$output" ]
+  [ ! -e "$missing" ]
+}
+
 @test "worktree-add.sh exits 2 with usage on stderr when the branch argument is missing" {
   run --separate-stderr "$SCRIPTS/worktree-add.sh" -C "$MAIN"
   assert_status 2
@@ -225,40 +283,107 @@ setup() { setup_fixture; }
   [ ! -e "$WORKTREES" ]
 }
 
-@test "worktree-add.sh gives up after 10 s on a lock held by a live pid, naming the pid, and leaves the lock and the repository untouched" {
+@test "worktree-add.sh gives up after ten 1 s sleeps on a lock held by a live pid, naming the pid, and leaves the lock and the repository untouched" {
+  lock=$(lock_path)
+  log="$BATS_TEST_TMPDIR/sleep.log"
   hold_lock $$
-  t0=$(date +%s)
-  run --separate-stderr "$SCRIPTS/worktree-add.sh" -C "$MAIN" feat
+  run --separate-stderr with_fake_sleep "$log" "$SCRIPTS/worktree-add.sh" -C "$MAIN" feat
   assert_status 1
-  [[ "$stderr" == *"lock "*" held by pid $$: another worktree script is running; retry"* ]]
-  [ "$(cat "$(lock_path)")" = "$$" ]
+  [ "$stderr" = "worktree-add.sh: lock $lock held by pid $$: another worktree script is running; retry" ]
+  assert_full_lock_wait "$log"
+  [ "$(cat "$lock/pid")" = "$$" ]
+  [ "$(ls -A "$lock")" = pid ]
+  [ "$(lock_entries)" = "$lock" ]
   fails branch_exists feat
   [ ! -e "$WORKTREES/feat" ]
-  [ $(( $(date +%s) - t0 )) -ge 10 ]
 }
 
-@test "worktree-add.sh reclaims a lock whose pid is dead and removes it on exit" {
+@test "worktree-add.sh treats a lock directory whose pid file is not written yet as held and leaves it untouched" {
+  lock=$(lock_path)
+  log="$BATS_TEST_TMPDIR/sleep.log"
+  mkdir "$lock"
+  run --separate-stderr with_fake_sleep "$log" "$SCRIPTS/worktree-add.sh" -C "$MAIN" feat
+  assert_status 1
+  assert_full_lock_wait "$log"
+  [ -d "$lock" ]
+  [ -z "$(ls -A "$lock")" ]
+  [ "$(lock_entries)" = "$lock" ]
+  fails branch_exists feat
+}
+
+@test "worktree-add.sh reclaims a lock whose pid is dead and leaves no lock entry on exit" {
   hold_lock "$(dead_pid)"
   run --separate-stderr "$SCRIPTS/worktree-add.sh" -C "$MAIN" feat
   assert_status 0
   has_line "state=created"
   [ ! -e "$(lock_path)" ]
+  [ -z "$(lock_entries)" ]
 }
 
-@test "worktree-add.sh waits for a live lock holder and proceeds once the lock is released" {
+@test "worktree-add.sh waits while a live holder keeps the lock and proceeds once it is released" {
   lock=$(lock_path)
-  t0=$(date +%s)
-  # a holder: its own pid in the lock for 2 s, then released
-  sh -c 'printf "%s\n" $$ > "$1.tmp" && mv "$1.tmp" "$1"; sleep 2; rm -f "$1"' sh "$lock" 3>&- >/dev/null 2>&1 &
+  "$BATS_TEST_DIRNAME/mock/lock-holder" "$lock" 1.5 3>&- >/dev/null 2>&1 &
   holder=$!
-  until [ -e "$lock" ]; do sleep 0.1; done
+  await_lock_holder "$holder"
+  t0=$(date +%s)
   run --separate-stderr "$SCRIPTS/worktree-add.sh" -C "$MAIN" feat
   t1=$(date +%s)
-  wait "$holder"
+  holder_status=0
+  wait "$holder" || holder_status=$?
   assert_status 0
   has_line "state=created"
-  [ $((t1 - t0)) -ge 2 ]
+  [ "$holder_status" -eq 0 ]
+  [ $((t1 - t0)) -ge 1 ]
   [ ! -e "$lock" ]
+  [ -z "$(lock_entries)" ]
+}
+
+@test "worktree-add.sh run three times in parallel on distinct branches creates all three worktrees and leaves no lock entry" {
+  pids=()
+  for b in par-1 par-2 par-3; do
+    "$SCRIPTS/worktree-add.sh" -C "$MAIN" "$b" origin/master 3>&- >"$BATS_TEST_TMPDIR/$b.out" 2>&1 &
+    pids+=("$!")
+  done
+  failed=0
+  for p in "${pids[@]}"; do wait "$p" || failed=$((failed + 1)); done
+  [ "$failed" -eq 0 ] || { cat "$BATS_TEST_TMPDIR"/par-*.out >&2; return 1; }
+  for b in par-1 par-2 par-3; do
+    [ "$(worktree_of_branch "$b")" = "$WORKTREES/$b" ]
+  done
+  [ -z "$(lock_entries)" ]
+}
+
+@test "worktree-add.sh run three times in parallel against a lock whose pid is dead all succeed and leave no lock entry" {
+  hold_lock "$(dead_pid)"
+  pids=()
+  for b in par-1 par-2 par-3; do
+    "$SCRIPTS/worktree-add.sh" -C "$MAIN" "$b" origin/master 3>&- >"$BATS_TEST_TMPDIR/$b.out" 2>&1 &
+    pids+=("$!")
+  done
+  failed=0
+  for p in "${pids[@]}"; do wait "$p" || failed=$((failed + 1)); done
+  [ "$failed" -eq 0 ] || { cat "$BATS_TEST_TMPDIR"/par-*.out >&2; return 1; }
+  for b in par-1 par-2 par-3; do
+    [ "$(worktree_of_branch "$b")" = "$WORKTREES/$b" ]
+  done
+  [ -z "$(lock_entries)" ]
+}
+
+@test "worktree-add.sh exits 1 on SIGTERM while waiting and leaves the live holder's lock and pid file as they were, with no litter" {
+  lock=$(lock_path)
+  hold_lock $$
+  "$SCRIPTS/worktree-add.sh" -C "$MAIN" feat 3>&- >"$BATS_TEST_TMPDIR/add.out" 2>&1 &
+  waiter=$!
+  await_sleeping "$waiter"
+  kill -TERM "$waiter"
+  waiter_status=0
+  wait "$waiter" || waiter_status=$?
+  [ "$waiter_status" -eq 1 ] || { printf 'waiter exited %s\n' "$waiter_status" >&2; cat "$BATS_TEST_TMPDIR/add.out" >&2; return 1; }
+  [ "$(cat "$lock/pid")" = "$$" ]
+  [ "$(ls -A "$lock")" = pid ]
+  [ "$(lock_entries)" = "$lock" ]
+  fails branch_exists feat
+  [ ! -e "$WORKTREES/feat" ]
 }
 
 @test "worktree-add.sh releases the lock when it refuses a branch checked out elsewhere" {
@@ -268,6 +393,7 @@ setup() { setup_fixture; }
   assert_status 1
   [[ "$stderr" == *exists* ]]
   [ ! -e "$(lock_path)" ]
+  [ -z "$(lock_entries)" ]
 }
 
 @test "worktree-add.sh --help prints usage to stdout and exits 0" {
@@ -276,9 +402,11 @@ setup() { setup_fixture; }
   [ -n "$output" ]
 }
 
-@test "worktree-add.sh --help mentions attaching and the lock in one paragraph" {
+@test "worktree-add.sh --help mentions info/exclude, attaching, and the lock in one paragraph with nothing on stderr" {
   run --separate-stderr "$SCRIPTS/worktree-add.sh" --help
   assert_status 0
+  [ -z "$stderr" ]
+  [[ "$output" == *info/exclude* ]]
   [[ "$output" == *attach* ]]
   [[ "$output" == *lock* ]]
   [[ "$output" != *$'\n\n'* ]]

@@ -1,0 +1,6 @@
+#!/bin/sh
+# Fake sleep: returns at once with exit 0. With SLEEP_MOCK_LOG set, every call appends its
+# arguments as one line to that file, so a test counts a script's waits without spending them;
+# unset, it is a silent no-op.
+
+[ -z "${SLEEP_MOCK_LOG-}" ] || printf '%s\n' "$*" >> "$SLEEP_MOCK_LOG"

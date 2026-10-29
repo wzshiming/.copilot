@@ -1,0 +1,14 @@
+#!/bin/sh
+# Fake worktree-script lock holder: lock-holder <lock-dir> <seconds>.
+# Holds <lock-dir> as a live worktree script does — the directory, its own pid in <lock-dir>/pid —
+# for <seconds> of real time, then removes <lock-dir> and exits 0.
+
+usage='usage: lock-holder <lock-dir> <seconds>'
+lock=${1:?$usage}
+secs=${2:?$usage}
+
+mkdir "$lock" || exit 1
+printf '%s\n' "$$" > "$lock/pid" || exit 1
+sleep "$secs" || exit 1
+rm -rf "$lock" || exit 1
+exit 0

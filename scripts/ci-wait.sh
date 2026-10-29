@@ -8,9 +8,9 @@ Polls the pull request's checks through gh every <seconds> (default $interval) a
 prints one 't=mm:ss pass= fail= pending= skipped=' line per round until every
 check has concluded or <minutes> (default $deadline) have passed since the start.
 Exit 0 with the check table once every check passed or skipped; exit 1 with
-the table and the tail of each failed or cancelled job's log; exit 3 with one
-'pending: <name>' line per unfinished check at the deadline; exit 2 on a usage
-error or when gh fails."
+the table and the tail of each failed or cancelled job's log, or with gh's
+error when gh fails; exit 3 with one 'pending: <name>' line per unfinished
+check at the deadline; exit 2 on a usage error."
 
 usage_error() { printf '%s: %s\n%s\n' "$prog" "$1" "$usage" >&2; exit 2; }
 
@@ -51,7 +51,7 @@ while :; do
   if ! out=$(gh pr checks "$pr" --repo "$repo" --json bucket,name,link --jq '.[] | [.bucket, .name, .link] | @tsv' 2>"$errfile") \
     && [ -z "$out" ] && ! grep -q 'no checks reported' "$errfile"; then
     cat "$errfile" >&2
-    exit 2
+    exit 1
   fi
   pass=0 fail=0 pending=0 skipped=0 failed='' waiting=''
   if [ -n "$out" ]; then

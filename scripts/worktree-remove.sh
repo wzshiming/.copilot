@@ -5,24 +5,26 @@ prog=${0##*/}
 usage="usage: $prog [-C <repo-path>] <branch> [--base <ref>] [--force-delete-branch]
        $prog [-C <repo-path>] --orphans
        $prog [-C <repo-path>] --merged <ref> <namespace>
-Removes the clean worktree of <branch> (never the main checkout or a dirty one),
-prunes, clears parent directories left empty under .worktrees, then deletes the
-branch when git agrees, when <base> (--base, else the remote's default branch)
-contains it, or always with --force-delete-branch; prints removed=<path>|none
-and branch=deleted|kept-unmerged|kept. --orphans deletes each unregistered
-non-empty directory under .worktrees whose files are all blobs the repository
-already has, keeps and lists on stderr the ones directly holding other files,
-judges the subdirectories of the rest the same way, prunes, clears empty
-directories, and prints orphans_removed= and orphans_kept=. --merged prunes,
-then for every branch under <namespace>/ (never <ref>'s own branch) that <ref>
-contains by ancestry or by patch equivalence (git cherry) removes its clean
-registered worktree and deletes the branch, keeps and lists on stderr the others
-(unmerged, dirty worktree, main checkout, worktree remove failed), and prints
+Removes the clean worktree of <branch> (never the main checkout or a dirty one;
+one whose directory vanished is only pruned), prunes, clears parent directories
+left empty under .worktrees, then deletes the branch when git agrees, when
+<base> (--base, else the remote's default branch) contains it, or always with
+--force-delete-branch; prints removed=<path>|none and
+branch=deleted|kept-unmerged|kept|delete-failed. --orphans deletes each
+unregistered non-empty directory under .worktrees whose files are all blobs the
+repository already has, keeps and lists on stderr the ones directly holding
+other files or that rm fails on, judges the subdirectories of the rest the same
+way, prunes, clears empty directories, and prints orphans_removed= and
+orphans_kept=. --merged prunes, then for every branch under <namespace>/ (never
+<ref>'s own branch) that <ref> contains by ancestry or by patch equivalence (git
+cherry) removes its clean registered worktree and deletes the branch, keeps and
+lists on stderr the others (unmerged, dirty worktree, status failed, main
+checkout, worktree remove failed, branch delete failed), and prints
 worktrees_removed=, branches_deleted= and branches_kept=. Every form runs under
 <git-common-dir>/worktree-scripts.lock, waiting up to 10 s for another worktree
-script on the repository. Exit 0 once <branch>'s removal is done whatever
-branch= says; 1 when refused, when the lock stays held, or when --orphans or
---merged kept anything; 2 on a usage error."
+script on the repository. Exit 0 once <branch>'s removal is done and its branch
+deleted or kept; 1 when refused, on branch=delete-failed, when the lock stays
+held, or when --orphans or --merged kept anything; 2 on a usage error."
 
 die() { printf '%s: %s\n' "$prog" "$1" >&2; exit 1; }
 usage_error() { printf '%s: %s\n%s\n' "$prog" "$1" "$usage" >&2; exit 2; }
@@ -54,38 +56,39 @@ else
 fi
 
 # Serialize the worktree scripts on one repository: <git-common-dir>/worktree-scripts.lock
-# names the holder's pid; it is created by hard link so it is never seen empty, a lock whose
-# pid is dead is reclaimed by rename (one waiter's rename wins), and the wait gives up after 10 s.
+# is a directory made by mkdir, its pid file naming the holder; a dead holder's lock is renamed
+# aside and deleted, never restored; the wait gives up after 10 s; exit frees only its own lock.
 take_lock() {
   common=$(git -C "$path" rev-parse --path-format=absolute --git-common-dir 2>/dev/null) \
     || die "not a git repository: $path"
   lock=$common/worktree-scripts.lock
-  mine=$lock.$$
-  printf '%s\n' "$$" >"$mine" || die "cannot write $mine"
+  trap 'rm -rf "$lock.stale.$$"
+    if [ "$(cat "$lock/pid" 2>/dev/null)" = "$$" ]; then rm -rf "$lock"; fi' EXIT
+  trap 'exit 1' HUP INT TERM
   waited=0
-  while ! ln "$mine" "$lock" 2>/dev/null; do
-    holder=$(cat "$lock" 2>/dev/null)
-    if [ -n "$holder" ] && ! kill -0 "$holder" 2>/dev/null; then
-      if mv "$lock" "$mine.stale" 2>/dev/null; then
-        if [ "$(cat "$mine.stale" 2>/dev/null)" = "$holder" ]; then rm -f "$mine.stale"
-        else ln "$mine.stale" "$lock" 2>/dev/null; rm -f "$mine.stale"
-        fi
-      fi
+  while :; do
+    if mkdir "$lock" 2>/dev/null; then
+      { printf '%s\n' "$$" >"$lock/pid"; } 2>/dev/null
+      owner=$(cat "$lock/pid" 2>/dev/null)
+      if [ "$owner" = "$$" ]; then return 0; fi
+      if [ -z "$owner" ]; then rm -rf "$lock"; die "cannot write $lock/pid"; fi
+      continue
+    fi
+    holder=$(cat "$lock/pid" 2>/dev/null)
+    if [ -n "$holder" ] && ! kill -0 "$holder" 2>/dev/null \
+      && mv "$lock" "$lock.stale.$$" 2>/dev/null; then
+      rm -rf "$lock.stale.$$"
     elif [ "$waited" -ge 10 ]; then
-      rm -f "$mine"
       die "lock $lock held by pid $holder: another worktree script is running; retry"
     else
       sleep 1
       waited=$((waited + 1))
     fi
   done
-  rm -f "$mine"
-  trap 'rm -f "$lock"' EXIT
-  trap 'exit 1' HUP INT TERM
 }
 
 take_lock
-list=$(git -C "$path" worktree list --porcelain 2>/dev/null) || die "not a git repository: $path"
+list=$(git -C "$path" worktree list --porcelain 2>/dev/null) || die "git worktree list failed in $path"
 main_root=$(printf '%s\n' "$list" | sed -n '1s/^worktree //p')
 [ -n "$main_root" ] || die "cannot determine the main worktree of $path"
 wtroot=$main_root/.worktrees
@@ -152,7 +155,14 @@ direct_of() {
 judge() {
   _unknown=$(unknown_under "$1")
   if [ -z "$_unknown" ]; then
-    case $1 in "$wtroot"/?*) rm -rf -- "$1" ;; esac
+    case $1 in
+      "$wtroot"/?*)
+        if ! rm -rf -- "$1"; then
+          printf '%s: kept %s (rm failed)\n' "$prog" "$(printf '%s' "$1" | tr '\n\r' '??')" >&2
+          kept=$((kept + 1))
+          return 0
+        fi ;;
+    esac
     removed=$((removed + 1))
     return 0
   fi
@@ -227,12 +237,13 @@ if [ -n "$merged" ]; then
         $0 == "branch " b { print p; exit }')
       if [ -n "$wt" ]; then
         if [ "$wt" = "$main_root" ]; then keep "$b" "main checkout"; continue; fi
-        if [ -n "$(git -C "$wt" status --porcelain -uall 2>/dev/null)" ]; then keep "$b" "dirty worktree"; continue; fi
+        if ! _st=$(git -C "$wt" status --porcelain -uall 2>/dev/null); then keep "$b" "status failed"; continue; fi
+        if [ -n "$_st" ]; then keep "$b" "dirty worktree"; continue; fi
         if ! git -C "$main_root" worktree remove "$wt"; then keep "$b" "worktree remove failed"; continue; fi
         clear_parents "$wt"
         removed=$((removed + 1))
       fi
-      git -C "$main_root" branch -D "$b" >/dev/null || die "git branch -D $b failed"
+      if ! git -C "$main_root" branch -D "$b" >/dev/null; then keep "$b" "branch delete failed"; continue; fi
       deleted=$((deleted + 1))
     done <<EOF
 $candidates
@@ -253,19 +264,31 @@ wt=$(printf '%s\n' "$list" | awk -v b="refs/heads/$branch" '
 removed=none
 if [ -n "$wt" ]; then
   [ "$wt" != "$main_root" ] || die "branch '$branch' is checked out in the main checkout $main_root, which is never removed"
-  dirty=$(git -C "$wt" status --porcelain -uall 2>/dev/null)
-  if [ -n "$dirty" ]; then
-    printf '%s\n' "$dirty" >&2
-    die "worktree $wt is dirty: commit or discard the changes above first"
+  if [ ! -e "$wt" ]; then
+    printf '%s: worktree %s had vanished, pruning\n' "$prog" "$wt" >&2
+    git -C "$main_root" worktree prune
+  else
+    dirty=$(git -C "$wt" status --porcelain -uall 2>/dev/null) || die "cannot inspect worktree $wt"
+    if [ -n "$dirty" ]; then
+      printf '%s\n' "$dirty" >&2
+      die "worktree $wt is dirty: commit or discard the changes above first"
+    fi
+    git -C "$main_root" worktree remove "$wt" || die "git worktree remove $wt failed"
+    git -C "$main_root" worktree prune
   fi
-  git -C "$main_root" worktree remove "$wt" || die "git worktree remove $wt failed"
-  git -C "$main_root" worktree prune
   clear_parents "$wt"
   removed=$wt
 fi
 
+# from here the worktree is gone: every exit reports removed= first
+delete_failed() {
+  printf 'removed=%s\nbranch=delete-failed\n' "$removed"
+  printf '%s: git branch -D %s failed\n' "$prog" "$branch" >&2
+  exit 1
+}
+
 if [ -n "$force" ]; then
-  git -C "$main_root" branch -D "$branch" >/dev/null || die "git branch -D $branch failed"
+  git -C "$main_root" branch -D "$branch" >/dev/null || delete_failed
   result=deleted
 elif git -C "$main_root" branch -d "$branch" >/dev/null 2>&1; then
   result=deleted
@@ -277,7 +300,7 @@ else
   fi
   if [ -z "$base" ]; then result=kept
   elif git -C "$main_root" merge-base --is-ancestor "$branch" "$base" 2>/dev/null; then
-    git -C "$main_root" branch -D "$branch" >/dev/null || die "git branch -D $branch failed"
+    git -C "$main_root" branch -D "$branch" >/dev/null || delete_failed
     result=deleted
   else result='kept-unmerged'
   fi

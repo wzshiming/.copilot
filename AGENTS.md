@@ -4,14 +4,14 @@ Personal agents repository — agent definitions plus the scripts they run, no a
 
 ## Structure
 
-Only `.github/`, `agents/`, `scripts/`, `tests/`, dotfiles, root Markdown docs, `LICENSE`, and `Makefile` are tracked; everything else at the root is local runtime state excluded by the `.gitignore` whitelist.
+Only `.github/`, `agents/`, `scripts/`, `tests/`, the dotfiles `.gitignore` lists, root Markdown docs, `LICENSE`, and `Makefile` are tracked; everything else at the root is local runtime state excluded by the `.gitignore` whitelist.
 
 ### Scripts
 
 - Each script lives in `scripts/<name>.sh` as POSIX sh (`#!/bin/sh`, clean under `shellcheck -s sh`), called as `~/.copilot/scripts/<name>.sh [-C <repo-path>] <args>`; the lock block `take_lock` is identical in `scripts/worktree-add.sh` and `scripts/worktree-remove.sh` and is edited in both together.
 - A script never prompts, reads no environment variable as configuration, and never forces; an unmet precondition makes it refuse and say why.
 - Exit codes: `0` done, `1` refused or failed, `2` usage error; a script's `--help` may define more (`ci-wait.sh`: `3` still pending at the deadline); results print as `key=value` lines, a listing (`worktree-status.sh`) as one line per item, a watcher as one progress line per poll plus the final table; `--help` prints one paragraph.
-- Tests live in `tests/<name>.bats` (bats-core); reusable fake commands live in `tests/mock/<cmd>`, never as stubs written inside a single `.bats` file.
+- Tests live in `tests/<name>.bats` (bats-core); reusable fake commands live in `tests/mock/<cmd>`, clean under `shellcheck -s sh`, never as stubs written inside a single `.bats` file.
 
 ### Agents
 
@@ -22,7 +22,8 @@ Only `.github/`, `agents/`, `scripts/`, `tests/`, dotfiles, root Markdown docs, 
 ## Checks
 
 - `make check` — Prettier format check + markdownlint + shellcheck + bats, the full suite.
-- `make lint` — markdownlint on Markdown + `shellcheck -s sh` on `scripts/*.sh`.
+- `make format-check` — Prettier check on Markdown.
+- `make lint` — markdownlint on Markdown + `shellcheck -s sh` on `scripts/*.sh` and `tests/mock/*` + `shellcheck -s bash` on `tests/helpers.bash`; `.bats` files are not shellchecked.
 - `make test` — bats-core on `tests/*.bats`.
 - `make format` — Prettier rewrites Markdown.
 - These targets, or the commands they run on specific files, may run locally without asking.
@@ -35,7 +36,7 @@ Only `.github/`, `agents/`, `scripts/`, `tests/`, dotfiles, root Markdown docs, 
 - Agent body sections are H2 only, one per name, in this order and only when needed: Input, Constraints, Approach (a subagent's checklist) or Workflow (the Orchestrator's and Planner's phase loop), Rules, Output Format.
 - List items are fragments or single sentences without a terminal period — split an item rather than write two sentences in it; only Workflow phase items are paragraphs with a bold `**Phase**:` label and full punctuation, every other label is plain `Label:`.
 - Emphasis: `_Agent_` italics for agent names, bold only for Workflow phase names — their labels and references back to them — and a body's key-fact line (`**Ledger**`, `**Current plan**`), backticks for paths and commands, `#tool:` for tools; a list's lead-in sentence ends with a colon.
-- Descriptions: at most 35 words, shorter preferred; one outcome clause (what it does, not its steps), then `Use when:` with up to three triggers specific to the task; no model names; a dispatch-only agent's description names no dispatcher or dispatchee, a user-invocable agent's may name the agents whose handoffs feed it (`agents/*.agent.md` frontmatter).
+- Descriptions: at most 35 words, shorter preferred; one outcome clause (what it does, not its steps), then `Use when:` with up to three comma- or semicolon-separated triggers specific to the task; no model names; a dispatch-only agent's description names no dispatcher or dispatchee, a user-invocable agent's may name the agents whose handoffs feed it (`agents/*.agent.md` frontmatter).
 - Shell: auto-approvable and self-contained; a fixed flow is one script call, approvable whole; no `export …;` preamble or `VAR=… cmd` prefix and no zsh-only syntax; guards are flags, not environment; `gh` output piped; watchers included in the foreground rather than redirected (Executor's Constraints and Rules, the shared auto-approval bullet).
 - Testing: the full suite runs on CI as the merge gate and local runs stay targeted — the baseline is the start commit's CI result, else one local run, and a local full run comes only before a landing to no PR or when CI is unreachable (Executor's CI and Landing rules, `scripts/ci-wait.sh`).
 - Execution: only Scout (side-effect-free reads) and Executor run terminal commands, each naming its `execute/<tool>` entries instead of the `execute` set; Coder, Orchestrator, Reviewer, and Challenger dispatch Executor by its `argument-hint`, one dispatch per step; destructive commands only when named (Executor's Constraints and Rules, the shared Executor-dispatch sentence).
