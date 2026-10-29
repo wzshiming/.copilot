@@ -21,15 +21,17 @@ setup() {
   printf '%s\n' 'All checks were successful' "$TABLE_LINE" > "$GH_MOCK_DIR/table"
 }
 
-# checks <n> <bucket> <name> <link>...: the TSV the n-th poll answers with
+# checks <n> <bucket> <name> <link>...: the JSON the n-th poll answers with, keys in gh's
+# alphabetical order (bucket, link, name), so only a --jq filter picking fields by name reads it
 checks() {
-  local n=$1
+  local n=$1 sep='' json='['
   shift
-  : > "$GH_MOCK_DIR/checks.$n"
   while [ $# -gt 0 ]; do
-    printf '%s\t%s\t%s\n' "$1" "$2" "$3" >> "$GH_MOCK_DIR/checks.$n"
+    json+="$sep{\"bucket\":\"$1\",\"link\":\"$3\",\"name\":\"$2\"}"
+    sep=,
     shift 3
   done
+  printf '%s]\n' "$json" > "$GH_MOCK_DIR/checks.$n"
 }
 
 # gh_fails <n> <text>: the n-th poll prints <text> on stderr, nothing on stdout, exits 1
@@ -174,12 +176,34 @@ gh_calls() {
   has_line 'pending: no checks reported'
 }
 
-@test "ci-wait.sh exits 2 forwarding gh's stderr, with no progress line, when gh fails for any other reason" {
+@test "ci-wait.sh exits 1 forwarding gh's stderr, with no progress line, when gh fails on the first poll for any other reason" {
   gh_fails 1 'GraphQL: Could not resolve to a PullRequest with the number of 999.'
   run --separate-stderr "$SCRIPT" 999 o/r --interval 0
-  assert_status 2
+  assert_status 1
   [[ "$stderr" == *'GraphQL: Could not resolve to a PullRequest with the number of 999.'* ]]
   [ "$(count_lines_matching '^t=')" -eq 0 ]
+}
+
+@test "ci-wait.sh exits 1 forwarding gh's stderr after one progress line and no table when gh fails on a later poll" {
+  checks 1 pending build "$LINK/555"
+  gh_fails 2 'HTTP 502: Bad Gateway (https://api.github.com/graphql)'
+  run_wait
+  assert_status 1
+  [[ "$stderr" == *'HTTP 502: Bad Gateway'* ]]
+  [ "$(count_lines_matching '^t=')" -eq 1 ]
+  [ "$(gh_calls '--json')" -eq 2 ]
+  [ "$(gh_calls '^pr checks 7 --repo o/r$')" -eq 0 ]
+  [[ "$output" != *"$TABLE_LINE"* ]]
+}
+
+@test "ci-wait.sh reads bucket, name and link by key from gh's JSON, whose keys come in alphabetical order" {
+  printf '%s\n' "[{\"bucket\":\"fail\",\"link\":\"$LINK/555\",\"name\":\"build\"},{\"bucket\":\"pass\",\"link\":\"$LINK/556\",\"name\":\"test\"}]" \
+    > "$GH_MOCK_DIR/checks.1"
+  run_wait
+  assert_status 1
+  progress_line 0 'pass=1 fail=1 pending=0 skipped=0'
+  has_line '--- build (job 555) ---'
+  [ "$(gh_calls 'run view --job 555')" -eq 1 ]
 }
 
 @test "ci-wait.sh treats an unknown bucket value as pending" {
@@ -254,10 +278,39 @@ gh_calls() {
   [ -n "$stderr" ]
 }
 
-@test "ci-wait.sh --help prints usage naming --deadline and --interval to stdout and exits 0" {
+@test "ci-wait.sh exits 2 without calling gh when --deadline is the last argument, missing its value" {
+  run --separate-stderr "$SCRIPT" 7 o/r --interval 0 --deadline
+  assert_status 2
+  [ -n "$stderr" ]
+  [ ! -e "$GH_MOCK_DIR/calls.log" ]
+}
+
+@test "ci-wait.sh exits 2 without calling gh when --interval is the last argument, missing its value" {
+  run --separate-stderr "$SCRIPT" 7 o/r --deadline 0 --interval
+  assert_status 2
+  [ -n "$stderr" ]
+  [ ! -e "$GH_MOCK_DIR/calls.log" ]
+}
+
+@test "ci-wait.sh --help prints one paragraph naming --deadline, --interval and exit 3 to stdout and exits 0" {
   run --separate-stderr "$SCRIPT" --help
   assert_status 0
   [[ "$output" == *--deadline* ]]
   [[ "$output" == *--interval* ]]
+  [[ "$output" == *[Ee]xit\ 3* ]]
+  [[ "$output" != *$'\n\n'* ]]
   [ -z "$stderr" ]
+}
+
+@test "ci-wait.sh --help does not document a gh failure as exit 2" {
+  run --separate-stderr "$SCRIPT" --help
+  assert_status 0
+  local clause clauses re='(^|[^[:alnum:]])gh([^[:alnum:]]|$)'
+  IFS=';.' read -ra clauses <<<"${output//$'\n'/ }"
+  for clause in "${clauses[@]}"; do
+    if [[ "$clause" == *[Ee]xit\ 2* && "$clause" =~ $re ]]; then
+      printf 'help ties exit 2 to gh: %s\n' "$clause" >&2
+      return 1
+    fi
+  done
 }

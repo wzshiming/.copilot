@@ -5,15 +5,17 @@ prog=${0##*/}
 usage="usage: $prog [-C <repo-path>] <branch> [<base-ref>]
 Creates <main-root>/.worktrees/<branch> checked out on the new branch <branch>
 starting at <base-ref>; without <base-ref> it fetches the remote (upstream, else
-origin) and starts at that remote's default branch. A branch that exists with
-no worktree is attached there instead, without a fetch or an inferred base.
-Prints worktree=, branch=, base=, base_sha=, main_root= and
-state=created|attached|exists (base= and base_sha= empty when attaching without
-<base-ref>); a branch already checked out in its own .worktrees directory is
-reported, not touched. Runs under <git-common-dir>/worktree-scripts.lock,
-waiting up to 10 s for another worktree script on the repository. Refuses
-(exit 1) when the branch is checked out elsewhere, the directory is taken, no
-base can be inferred, or the lock stays held; exit 2 on a usage error."
+origin) and starts at that remote's default branch. An existing branch gets no
+fetch and no inferred base: with no worktree it is attached there, and one
+already checked out there is reported, not touched. The first run appends
+/.worktrees to <git-common-dir>/info/exclude unless .worktrees is already
+ignored. Prints worktree=, branch=, base=, base_sha=, main_root= and
+state=created|attached|exists (base= and base_sha= empty for an existing branch
+without <base-ref>). Runs under <git-common-dir>/worktree-scripts.lock, waiting
+up to 10 s for another worktree script on the repository. Refuses (exit 1) when
+<repo-path> is not a git repository, the branch is checked out elsewhere, the
+directory is taken, the fetch fails, no base can be inferred, or the lock stays
+held; exit 2 on a usage error, including a <repo-path> that is not a directory."
 
 die() { printf '%s: %s\n' "$prog" "$1" >&2; exit 1; }
 usage_error() { printf '%s: %s\n%s\n' "$prog" "$1" "$usage" >&2; exit 2; }
@@ -30,42 +32,44 @@ while [ $# -gt 0 ]; do
   esac
   shift
 done
+[ -d "$path" ] || usage_error "no such directory: $path"
 [ -n "$branch" ] || usage_error "missing <branch>"
 git -C "$path" check-ref-format --branch "$branch" >/dev/null 2>&1 || usage_error "invalid branch name '$branch'"
 
 # Serialize the worktree scripts on one repository: <git-common-dir>/worktree-scripts.lock
-# names the holder's pid; it is created by hard link so it is never seen empty, a lock whose
-# pid is dead is reclaimed by rename (one waiter's rename wins), and the wait gives up after 10 s.
+# is a directory made by mkdir, its pid file naming the holder; a dead holder's lock is renamed
+# aside and deleted, never restored; the wait gives up after 10 s; exit frees only its own lock.
 take_lock() {
   common=$(git -C "$path" rev-parse --path-format=absolute --git-common-dir 2>/dev/null) \
     || die "not a git repository: $path"
   lock=$common/worktree-scripts.lock
-  mine=$lock.$$
-  printf '%s\n' "$$" >"$mine" || die "cannot write $mine"
+  trap 'rm -rf "$lock.stale.$$"
+    if [ "$(cat "$lock/pid" 2>/dev/null)" = "$$" ]; then rm -rf "$lock"; fi' EXIT
+  trap 'exit 1' HUP INT TERM
   waited=0
-  while ! ln "$mine" "$lock" 2>/dev/null; do
-    holder=$(cat "$lock" 2>/dev/null)
-    if [ -n "$holder" ] && ! kill -0 "$holder" 2>/dev/null; then
-      if mv "$lock" "$mine.stale" 2>/dev/null; then
-        if [ "$(cat "$mine.stale" 2>/dev/null)" = "$holder" ]; then rm -f "$mine.stale"
-        else ln "$mine.stale" "$lock" 2>/dev/null; rm -f "$mine.stale"
-        fi
-      fi
+  while :; do
+    if mkdir "$lock" 2>/dev/null; then
+      { printf '%s\n' "$$" >"$lock/pid"; } 2>/dev/null
+      owner=$(cat "$lock/pid" 2>/dev/null)
+      if [ "$owner" = "$$" ]; then return 0; fi
+      if [ -z "$owner" ]; then rm -rf "$lock"; die "cannot write $lock/pid"; fi
+      continue
+    fi
+    holder=$(cat "$lock/pid" 2>/dev/null)
+    if [ -n "$holder" ] && ! kill -0 "$holder" 2>/dev/null \
+      && mv "$lock" "$lock.stale.$$" 2>/dev/null; then
+      rm -rf "$lock.stale.$$"
     elif [ "$waited" -ge 10 ]; then
-      rm -f "$mine"
       die "lock $lock held by pid $holder: another worktree script is running; retry"
     else
       sleep 1
       waited=$((waited + 1))
     fi
   done
-  rm -f "$mine"
-  trap 'rm -f "$lock"' EXIT
-  trap 'exit 1' HUP INT TERM
 }
 
 take_lock
-list=$(git -C "$path" worktree list --porcelain 2>/dev/null) || die "not a git repository: $path"
+list=$(git -C "$path" worktree list --porcelain 2>/dev/null) || die "git worktree list failed in $path"
 main_root=$(printf '%s\n' "$list" | sed -n '1s/^worktree //p')
 [ -n "$main_root" ] || die "cannot determine the main worktree of $path"
 expected=$main_root/.worktrees/$branch
@@ -92,8 +96,8 @@ fi
 if [ -n "$base" ]; then
   git -C "$main_root" rev-parse --verify --quiet "$base^{commit}" >/dev/null \
     || die "base ref '$base' does not resolve to a commit"
-elif [ "$state" != attached ]; then
-  # upstream wins over origin
+elif [ "$state" = created ]; then
+  # only a new branch fetches and infers a base; upstream wins over origin
   remote=$(git -C "$main_root" remote | grep -x -e upstream -e origin | sort -r | head -n 1)
   [ -n "$remote" ] || die "no upstream or origin remote: pass an explicit <base-ref>"
   git -C "$main_root" fetch -q "$remote" || die "fetch from $remote failed"

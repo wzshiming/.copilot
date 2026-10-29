@@ -1,11 +1,21 @@
 #!/bin/sh
 # Fake gh for tests/ci-wait.bats. Answers come from files under $GH_MOCK_DIR, and
 # every call appends its arguments as one line to $GH_MOCK_DIR/calls.log.
-#   pr checks … --json …     stdout = checks.N on the N-th such call, N sticking at
-#                            the last file present; exit 0 as gh does under --json.
-#                            A checks.N.stderr instead goes to stderr with empty
-#                            stdout and exit 1, as gh's "no checks reported on the
-#                            '<branch>' branch" and lookup errors do.
+#   pr checks … --json <fields> [--jq <filter>]
+#                            serves checks.N on the N-th such call, N sticking at
+#                            the last file present: the JSON array of check objects
+#                            gh prints, keys in gh's alphabetical order; exit 0 as
+#                            gh does under --json. Without --jq stdout = checks.N.
+#                            --jq applies <filter>, which must have the shape
+#                            '.[] | [.f1, .f2, …] | @tsv' naming only <fields>
+#                            that every object holds: one line per object, those
+#                            values tab-separated in that order. Any other filter
+#                            or a missing field: "mock gh: unsupported --jq" on
+#                            stderr, exit 99. Values must be flat strings, numbers
+#                            or null; backslash escapes (\" included) are
+#                            unsupported. A checks.N.stderr instead goes to stderr
+#                            with empty stdout and exit 1, as gh's "no checks
+#                            reported on the '<branch>' branch" and lookup errors do.
 #   pr checks … (no --json)  stdout = table; exit 1, 8 or 0 as gh does when the
 #                            last served checks hold a fail/cancel, a pending, or
 #                            neither.
@@ -15,25 +25,89 @@
 dir=${GH_MOCK_DIR:?must point at the fixture directory}
 printf '%s\n' "$*" >> "$dir/calls.log"
 
-json='' job='' prev=''
+json='' jq='' job='' prev=''
 for arg in "$@"; do
+  case $prev in
+    --json) json=$arg ;;
+    --jq | -q) jq=$arg ;;
+    --job) job=$arg ;;
+  esac
   case $arg in
-    --json | --json=*) json=1 ;;
+    --json=*) json=${arg#--json=} ;;
+    --jq=*) jq=${arg#--jq=} ;;
     --job=*) job=${arg#--job=} ;;
   esac
-  [ "$prev" = --job ] && job=$arg
   prev=$arg
 done
+
+# jq_tsv <filter> <fields> <file>: apply a '.[] | [.f1, …] | @tsv' filter to the
+# JSON array in <file>, printing nothing unless the whole filter succeeds
+jq_tsv() {
+  awk -v expr="$1" -v requested="$2" '
+    { doc = doc $0 "\n" }
+    END {
+      e = expr
+      gsub(/[ \t]*[|][ \t]*/, "|", e); gsub(/[ \t]*,[ \t]*/, ",", e)
+      gsub(/\[[ \t]+/, "[", e); gsub(/[ \t]+]/, "]", e)
+      sub(/^[ \t]+/, "", e); sub(/[ \t]+$/, "", e)
+      if (e !~ /^\.\[][|]\[\.[A-Za-z_][A-Za-z0-9_]*(,\.[A-Za-z_][A-Za-z0-9_]*)*][|]@tsv$/) exit 99
+      sub(/^\.\[][|]\[\./, "", e); sub(/][|]@tsv$/, "", e); gsub(/,\./, ",", e)
+      nf = split(e, field, ",")
+      nr = split(requested, req, ",")
+      for (i = 1; i <= nr; i++) wanted[req[i]] = 1
+      for (i = 1; i <= nf; i++) if (!(field[i] in wanted)) exit 99
+      s = doc; depth = 0; expect = ""; out = ""
+      while (s != "") {
+        c = substr(s, 1, 1)
+        if (index(" \t\r\n", c)) { s = substr(s, 2); continue }
+        if (c == "\"") {
+          if (!match(s, /^"[^"]*"/)) exit 99
+          tok = substr(s, 2, RLENGTH - 2); kind = "value"; s = substr(s, RLENGTH + 1)
+          if (index(tok, "\\")) exit 99
+        } else if (index("[]{},:", c)) {
+          tok = c; kind = c; s = substr(s, 2)
+        } else {
+          n = 1
+          while (n < length(s) && !index(" \t\r\n[]{},:\"", substr(s, n + 1, 1))) n++
+          tok = substr(s, 1, n); kind = "value"; s = substr(s, n + 1)
+          if (tok == "null") tok = ""
+        }
+        if (depth == 0) {
+          if (kind != "[") exit 99
+          depth = 1
+        } else if (depth == 1) {
+          if (kind == "{") { depth = 2; expect = "key"; split("", obj) }
+          else if (kind == "]") depth = 3
+          else if (kind != ",") exit 99
+        } else if (depth == 2) {
+          if (kind == "value" && expect == "key") { key = tok; expect = ":" }
+          else if (kind == "value" && expect == "value") { if (key in wanted) obj[key] = tok; expect = "," }
+          else if (kind == ":" && expect == ":") expect = "value"
+          else if (kind == "," && expect == ",") expect = "key"
+          else if (kind == "}" && expect != ":" && expect != "value") {
+            line = ""
+            for (i = 1; i <= nf; i++) {
+              if (!(field[i] in obj)) exit 99
+              line = line (i > 1 ? "\t" : "") obj[field[i]]
+            }
+            out = out line "\n"; depth = 1
+          } else exit 99
+        } else exit 99
+      }
+      if (depth != 3) exit 99
+      printf "%s", out
+    }' "$3"
+}
 
 case " $* " in
   *" pr checks "*)
     if [ -z "$json" ]; then
       cat "$dir/table"
       [ -e "$dir/served" ] || exit 0
-      exit "$(awk -F '\t' '
-        $1 == "fail" || $1 == "cancel" { fail = 1 }
-        $1 == "pending" { pending = 1 }
-        END { print (fail ? 1 : pending ? 8 : 0) }' "$(cat "$dir/served")")"
+      served=$(cat "$dir/served")
+      grep -Eq '"bucket"[[:space:]]*:[[:space:]]*"(fail|cancel)"' "$served" && exit 1
+      grep -Eq '"bucket"[[:space:]]*:[[:space:]]*"pending"' "$served" && exit 8
+      exit 0
     fi
     n=$(($(cat "$dir/polls" 2>/dev/null || echo 0) + 1))
     printf '%s\n' "$n" > "$dir/polls"
@@ -45,7 +119,12 @@ case " $* " in
       exit 1
     fi
     printf '%s\n' "$dir/checks.$n" > "$dir/served"
-    cat "$dir/checks.$n"
+    if [ -z "$jq" ]; then
+      cat "$dir/checks.$n"
+    elif ! jq_tsv "$jq" "$json" "$dir/checks.$n"; then
+      printf 'mock gh: unsupported --jq\n' >&2
+      exit 99
+    fi
     ;;
   *" run view "*)
     [ -n "$job" ] || { printf 'mock gh: run view without --job\n' >&2; exit 99; }

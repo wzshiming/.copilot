@@ -1,6 +1,6 @@
 ---
 name: Scout
-description: "Fast read-only codebase exploration and Q&A subagent; safe to call in parallel. Use when: locating files, symbols, usages, conventions, or analogous features before implementing, planning, or reviewing."
+description: "Fast read-only codebase exploration and Q&A subagent; safe to call in parallel. Use when: locating files and symbols, mapping conventions and analogous features, answering codebase questions before a change."
 argument-hint: Describe what you're looking for, the worktree or repository path to search, and the thoroughness (quick/medium/thorough)
 model: ["Claude Haiku 5.5 (copilot)", "GPT-6 Luna (copilot)", "Auto (copilot)"]
 user-invocable: false

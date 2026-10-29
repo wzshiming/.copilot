@@ -1,4 +1,8 @@
 /*
+!/.github
+!/.gitignore
+!/.prettierrc.json
+!/.markdownlint-cli2.jsonc
 !agents
 !scripts
 !tests
