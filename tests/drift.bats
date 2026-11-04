@@ -87,23 +87,26 @@ assert_same() {
   assert_same fit agents/challenger.agent.md agents/reviewer.agent.md
 }
 
-@test "Coder, Orchestrator, Challenger, and Reviewer share the Executor-dispatch sentence" {
+@test "Orchestrator, Challenger, and Reviewer share the Executor-dispatch sentence" {
   local f
-  for f in coder:Rules orchestrator:Rules challenger:Constraints reviewer:Constraints; do
+  for f in orchestrator:Rules challenger:Constraints reviewer:Constraints; do
     extract_item "agents/${f%%:*}.agent.md" "${f#*:}" '(Commands: )?[Ee]very command —' \
       | sed -E 's/^- (Commands: )?[Ee]very command/every command/' \
       | keep executor-dispatch "agents/${f%%:*}.agent.md"
   done
-  assert_same executor-dispatch agents/coder.agent.md agents/orchestrator.agent.md \
+  assert_same executor-dispatch agents/orchestrator.agent.md \
     agents/challenger.agent.md agents/reviewer.agent.md
 }
 
-@test "Scout and Executor share the auto-approval bullet" {
+@test "Scout, Executor, and Coder share the auto-approval bullet" {
   extract_item agents/scout.agent.md Constraints 'Write auto-approvable commands:' \
     | keep auto-approval agents/scout.agent.md
   extract_item agents/executor.agent.md Constraints 'Write auto-approvable commands:' \
     | keep auto-approval agents/executor.agent.md
-  assert_same auto-approval agents/scout.agent.md agents/executor.agent.md
+  extract_item agents/coder.agent.md Constraints 'Write auto-approvable commands:' \
+    | keep auto-approval agents/coder.agent.md
+  assert_same auto-approval agents/scout.agent.md agents/executor.agent.md \
+    agents/coder.agent.md
 }
 
 @test "Planner, Orchestrator, and Challenger share the Language rule" {
