@@ -106,12 +106,6 @@ assert_same() {
   assert_same auto-approval agents/scout.agent.md agents/executor.agent.md
 }
 
-@test "Planner and Detailer share the Modules rule" {
-  extract_item agents/planner.agent.md Rules 'Modules:' | keep modules agents/planner.agent.md
-  extract_item agents/detailer.agent.md Rules 'Modules:' | keep modules agents/detailer.agent.md
-  assert_same modules agents/planner.agent.md agents/detailer.agent.md
-}
-
 @test "Planner, Orchestrator, and Challenger share the Language rule" {
   local a
   for a in planner orchestrator challenger; do

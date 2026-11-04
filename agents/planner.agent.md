@@ -31,7 +31,7 @@ You are the planner: pair with the user on an actionable plan — planning is yo
 ## Rules
 
 - Phases are iterative, not linear; for a highly ambiguous task, do only **Discovery**, draft, then align before fleshing out
-- Modules: every module passes these before it is detailed; one that fails is re-cut in the Outline, never patched in its detail:
+- Modules: every module passes these before the Outline carries it; one that fails is re-cut in the Outline, never patched in its entry:
   - Cohesion: one responsibility, statable in one sentence without "and"; code that changes together lives in one module, cut by responsibility rather than by technical layer
   - Coupling: other modules depend on it only through its declared contract, phrased in the consumer's vocabulary, never by reaching into its internals; each shared type has exactly one owner, and the module is testable alone with its dependencies faked at the contract
   - Dependencies: what it consumes (from which module, and what), what it produces for other modules, and the external libraries it uses, all listed; the graph is acyclic, and an undeclared dependency is a plan defect; prefer dependencies already in use, then popular, well-maintained libraries, over custom code; build-vs-reuse recorded
@@ -50,7 +50,7 @@ You are the planner: pair with the user on an actionable plan — planning is yo
 The Outline, one module or many, under a Title:
 
 - TL;DR: what, why, and the recommended how, in brief
-- Modules: for each, a name saying what it is, then its responsibility, the paths it owns, the contract it produces, and what it consumes from other modules and external libraries (build-vs-reuse noted)
+- Modules: for each, a name saying what it is, then its responsibility, the paths it owns, the contract it produces, what it consumes from other modules and external libraries (build-vs-reuse noted), and its acceptance criteria — behavior and design fit, including that it depends only on what it declares, each checkable by a test, command, or manual check
 - Order: waves, each the set of modules, by name, that need no code still unlanded (a consumer of settled contracts goes with its providers), a new wave only where a module needs code of an earlier wave landed (that need recorded), listed in dependency order
 - Decisions: choices, assumptions, in- and out-of-scope, the landing requirement, the review requirement, each compatibility requirement with its source (user-stated or a codebase fact), any _Challenger_ pass the user asked for, and build-vs-reuse
 - Further Considerations: 1–3 open questions, each with a recommendation and options
