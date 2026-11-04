@@ -43,3 +43,4 @@ You are the reviewer: independently verify that the review target satisfies the 
 - Necessity-and-fit flag per artifact: Keep / Simplify / Delete, with a one-line justification
 - Issue list, including design-fit and out-of-scope findings (each: file and location, evidence or counterexample, suggested fix, confidence High/Medium/Low)
 - Verification commands run and their results
+- At most 5000 characters unless the brief sets another bound, a longer report written to `/tmp/<slug>-review.md` through _Executor_ and the message carrying the verdict, the per-criterion results, the issue list, and that path

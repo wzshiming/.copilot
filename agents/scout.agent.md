@@ -32,3 +32,4 @@ Report findings directly as a message, including:
 - Specific functions, types, or patterns to reuse
 - Analogous existing features as implementation templates
 - Clear answers to what was asked, not comprehensive overviews
+- At most 5000 characters unless the brief sets another bound, paths with line numbers standing in for quotations past it
