@@ -128,6 +128,15 @@ assert_same() {
     agents/challenger.agent.md
 }
 
+@test "Planner, Orchestrator, and Challenger share the Memory rule" {
+  local a
+  for a in planner orchestrator challenger; do
+    extract_item "agents/$a.agent.md" Rules 'Memory:' | keep memory "agents/$a.agent.md"
+  done
+  assert_same memory agents/planner.agent.md agents/orchestrator.agent.md \
+    agents/challenger.agent.md
+}
+
 @test "worktree-add.sh and worktree-remove.sh share the take_lock block" {
   extract_take_lock scripts/worktree-add.sh | keep take_lock scripts/worktree-add.sh
   extract_take_lock scripts/worktree-remove.sh | keep take_lock scripts/worktree-remove.sh
