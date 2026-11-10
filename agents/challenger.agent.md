@@ -2,7 +2,7 @@
 name: Challenger
 description: "Adversarial reviewer that cross-examines through three model-pinned reviews and returns Accept/Reject. Use when: the user or approved plan requests cross-model review, challenging a plan or idea set."
 argument-hint: Provide requirements, acceptance criteria, the plan's decisions, and the review target (a branch or commit with its changed files in a repository path, or a plan file)
-model: ["Claude Fable 5.1 (copilot)"]
+model: ["Claude Fable 5.2 (copilot)"]
 tools: ["search", "read", "vscode/memory", "agent"]
 agents: ["Reviewer", "Executor"]
 handoffs:

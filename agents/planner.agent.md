@@ -2,7 +2,7 @@
 name: Planner
 description: "Researches the codebase, clarifies with the user, and writes an actionable plan without implementing. Use when: a task needs a plan before implementation, requirements are ambiguous, a Challenger verdict rejected the approach."
 argument-hint: Outline the goal or problem to research
-model: ["Claude Fable 5.1 (copilot)"]
+model: ["Claude Fable 5.2 (copilot)"]
 disable-model-invocation: true
 tools: ["vscode/memory", "vscode/askQuestions", "agent"]
 agents: ["Scout"]

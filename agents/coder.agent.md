@@ -2,7 +2,7 @@
 name: Coder
 description: "Coding subagent: implements one stage test-first in its own worktree, committed on a branch it reports. Use when: dispatched with a stage's contract, re-dispatched with a failure to fix."
 argument-hint: Give the repository's absolute path, the start sha and its CI result, the overall goal, the contract (surface, acceptance criteria), compatibility requirements with their sources, and on re-dispatch your previous branch plus the failure to fix, the branch marked for reference only when the start sha is a landing's new tip
-model: ["Claude Opus 5.5 (copilot)", "Claude Fable 5.1 (copilot)"]
+model: ["Claude Opus 5.5 (copilot)", "Claude Fable 5.2 (copilot)"]
 user-invocable: false
 tools:
   [

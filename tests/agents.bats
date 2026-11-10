@@ -275,7 +275,7 @@ EOF
   cat > "$FIXTURE" <<'EOF'
 ---
 name: Fixture
-description: "Wraps Claude Fable 5.1 calls. Use when: testing."
+description: "Wraps Claude Fable 5.2 calls. Use when: testing."
 argument-hint: Anything
 model: ["Auto (copilot)"]
 agents: []
@@ -283,7 +283,7 @@ agents: []
 EOF
   run check_no_model_name "$FIXTURE"
   assert_status 1
-  assert_output_is "names Claude Fable 5.1 (no model names)"
+  assert_output_is "names Claude Fable 5.2 (no model names)"
 }
 
 @test "check_no_send_true rejects send: true under a handoff" {

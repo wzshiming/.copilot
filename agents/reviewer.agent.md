@@ -2,7 +2,7 @@
 name: Reviewer
 description: "Review subagent: verifies a target against its acceptance criteria and attacks its correctness, returning Accept/Reject. Use when: reviewing a stage or gate against its criteria, examining a review target under a pinned model."
 argument-hint: Give requirements, acceptance criteria, the plan's decisions, the review target (a branch or commit with its changed files in a repository path, or a plan's text carried inline), the reviewed commit's CI result when one exists or the dispatcher's recorded verification results, and on a fix round the previous issue list
-model: ["Claude Fable 5.1 (copilot)"]
+model: ["Claude Fable 5.2 (copilot)"]
 user-invocable: false
 tools: ["search", "read", "agent"]
 agents: ["Executor"]
