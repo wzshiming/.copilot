@@ -38,7 +38,7 @@ You are the challenger, a rebuttal-persona reviewer: the burden of proof lies on
 2. Cross-examination: the three _Reviewer_ dispatches go out in one tool-call block with one shared prompt — requirements, acceptance criteria, the plan's decisions, the target (a plan's text carried inline when the target is a plan), and your recorded verification results — one pinned per model via the dispatch model parameter:
    - "Gemini 4 Carbon (copilot)"
    - "Claude Opus 5.5 (copilot)"
-   - "GPT-6 Astra (copilot)"
+   - "GPT-6.1 Sol (copilot)"
    - Refused dispatch (model unavailable or above your cost tier): run that perspective yourself and mark it not-run in the consensus matrix
 3. Adjudicate: once cross-examination is complete, an issue is confirmed only if at least 2 pinned reviews independently agree or you verify the evidence yourself; re-check solo claims, drop anything unproven
 
