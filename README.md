@@ -1,10 +1,51 @@
-# .copilot
+# .claude
 
-My personal .copilot
+My personal agents for Claude Code, with generated copies for VS Code Copilot.
 
-## VS Code settings
+## Install
 
-The agents assume these user settings; `settings.json` is outside this repo's tracked whitelist, so they are recorded here:
+Clone as `~/.claude`; the `.gitignore` whitelist keeps Claude Code's own state out of the repository. With an existing `~/.claude`:
+
+```sh
+git -C ~/.claude init
+git -C ~/.claude remote add origin <this repository>
+git -C ~/.claude fetch origin
+git -C ~/.claude checkout master
+```
+
+## Claude Code
+
+`agents/*.md` load as user-level subagents. The three entry points run as the main agent, which is what makes their `Agent(...)` allowlists apply:
+
+```sh
+claude --agent Planner
+claude --agent Orchestrator
+claude --agent Challenger
+```
+
+- A plan file and a task ledger live in the working repository's `.git/agents/`; a finished _Planner_ session names the plan file for the _Orchestrator_ session to adopt
+- Review nests three levels below the main agent (_Orchestrator_ → _Challenger_ → _Reviewer_ → _Executor_), Claude Code's default limit
+- The agents call the scripts as `~/.claude/scripts/<name>.sh`; allow them once in `~/.claude/settings.json`, which is outside this repo's tracked whitelist:
+
+```json
+{
+  "permissions": {
+    "allow": ["Bash(~/.claude/scripts/*)"]
+  }
+}
+```
+
+## VS Code Copilot
+
+Copilot does not read `~/.claude/agents` reliably, and its frontmatter (tool names, model lists, `agents`, `handoffs`) differs, so its agents are generated:
+
+```sh
+~/.claude/scripts/copilot-install.sh
+```
+
+It writes `~/.copilot/agents/<name>.agent.md` from `agents/<name>.md`, `copilot/<name>.yml`, and `copilot/map`; rerun it after every pull, or with `--check` to see whether the installed copies are stale.
+
+The generated agents assume these user settings:
 
 ```json
 {

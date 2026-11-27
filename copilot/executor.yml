@@ -1,0 +1,4 @@
+model: ["Claude Haiku 5.5 (copilot)", "GPT-6 Luna (copilot)", "Auto (copilot)"]
+user-invocable: false
+tools: ["read", "execute/runInTerminal", "execute/getTerminalOutput", "execute/killTerminal"]
+agents: []

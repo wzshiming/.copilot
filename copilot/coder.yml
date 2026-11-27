@@ -1,0 +1,12 @@
+model: ["Claude Opus 5.5 (copilot)", "Claude Fable 5.2 (copilot)"]
+user-invocable: false
+tools:
+  [
+    "search",
+    "read",
+    "edit",
+    "execute/runInTerminal",
+    "execute/getTerminalOutput",
+    "execute/killTerminal",
+  ]
+agents: []

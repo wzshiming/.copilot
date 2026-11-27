@@ -1,0 +1,11 @@
+model: ["Claude Fable 5.2 (copilot)"]
+disable-model-invocation: true
+tools: ["vscode/memory", "vscode/askQuestions", "agent"]
+agents: ["Scout"]
+handoffs:
+  - label: Start Implementation
+    agent: Orchestrator
+    prompt: "Start implementation of the approved plan; the plan file is the one named above, in /memories/session/."
+  - label: Challenge Plan
+    agent: Challenger
+    prompt: "Challenge the plan file named above, in /memories/session/, as the review target; nothing has been implemented yet."

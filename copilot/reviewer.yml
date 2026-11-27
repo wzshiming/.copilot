@@ -1,0 +1,4 @@
+model: ["Claude Fable 5.2 (copilot)"]
+user-invocable: false
+tools: ["search", "read", "agent"]
+agents: ["Executor"]

@@ -1,0 +1,8 @@
+model: ["Claude Fable 5.2 (copilot)", "Claude Opus 5.5 (copilot)"]
+disable-model-invocation: true
+tools: ["agent", "vscode/memory", "vscode/askQuestions"]
+agents: ["Scout", "Coder", "Reviewer", "Challenger", "Executor"]
+handoffs:
+  - label: Re-plan
+    agent: Planner
+    prompt: "Revise the plan as flagged above (plan-level ambiguities, a re-cut, or a contract change); the task ledger is in /memories/repo/."

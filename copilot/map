@@ -1,0 +1,95 @@
+# Claude wording (<) to Copilot wording (>): literal, applied in file order to every body line
+# of agents/*.md by scripts/copilot-install.sh; an entry matching nothing is refused.
+
+< (`<repo>` is the main checkout's root; `<slug>` is
+> (`<slug>` is
+
+< `<repo>/.git/agents/plan-
+> `/memories/session/plan-
+
+< `<repo>/.git/agents/task-
+> `/memories/repo/task-
+
+< written with Write and Edit — the plan file is your only write.
+> updated via #tool:vscode/memory — your only write tool.
+
+< with the first draft, via Write, then
+> with the first draft, via #tool:vscode/memory, then
+
+< the next session reads the file, not the chat.
+> the handoffs read the file, not the chat.
+
+< on approval, name the plan file and tell the user to start `claude --agent Orchestrator` in the repository, or `claude --agent Challenger` to challenge the plan first. Iterate until approval.
+> on approval, the user proceeds via the handoff buttons. Iterate until approval or handoff.
+
+< - Plan file: create it once, in **Design**, and edit it in place from then on with Edit, section by section; rewrite it whole with Write only when the Outline is re-cut
+> - Plan file: create it once, in **Design**, and edit it in place from then on with `str_replace` or `insert`, section by section; rewrite it whole only when the Outline is re-cut, and then `rename` it to `plan-<slug>.prev.md`, `create` the new file, and `delete` the backup last, never deleting the plan first; a backup left by an interrupted turn is judged by whether its plan file sits beside it — if so it is stale and deleted, if not it is the plan and is renamed back before anything else
+
+< AskUserQuestion
+> #tool:vscode/askQuestions
+
+< never from a dispatch brief,
+> never from a handoff prompt,
+
+< - Memory: a reusable rule the user states is offered back in your final message as one line of at most about 300 characters for their own memory file, never written by you, evidence and task narrative left out
+> - Memory: a user-memory entry is one line of at most about 300 characters stating one reusable rule, inserted at the top of its file's list so the newest stay within the 200 lines the harness loads, outdated entries deleted, evidence and task narrative kept in repository memory instead
+
+< after every stage with Write or Edit so
+> after every stage via #tool:vscode/memory so
+
+< a re-plan by _Planner_ in a `claude --agent Planner` session given the ledger path
+> the Re-plan handoff to _Planner_
+
+< the _Coder_ description's `Brief:` asks for
+> the _Coder_ `argument-hint` asks for
+
+< the target description's `Brief:` asks for
+> the target's `argument-hint` asks for
+
+< via the Agent tool's `model` parameter
+> via the dispatch model parameter
+
+< the _Coder_'s own model
+> the _Coder_'s own list
+
+< - `haiku` for
+> - "Claude Haiku 5.5 (copilot)" for
+
+< - `sonnet` for
+> - "Claude Sonnet 5.5 (copilot)" for
+
+< - `opus` for
+> - "Claude Opus 5.5 (copilot)" for
+
+< - `fable` for
+> - "Claude Fable 5.2 (copilot)" for
+
+< - `fable`
+> - "Gemini 4 Neon (copilot)"
+
+< - `opus`
+> - "Claude Opus 5.5 (copilot)"
+
+< - `sonnet`
+> - "GPT-6.2 Sol (copilot)"
+
+< a plan file in `<repo>/.git/agents/` read with Read
+> a plan file in `/memories/session/` read via #tool:vscode/memory
+
+< - On Reject, end by recommending the next session: rework in `claude --agent Orchestrator` for implementation-level issues, redesign in `claude --agent Planner` for approach-level flaws
+> - On Reject, end by recommending a handoff: Rework (_Orchestrator_) for implementation-level issues, Redesign (_Planner_) for approach-level flaws
+
+< - Terminal: run every command by absolute path or through `git -C <worktree>` / `make -C <worktree>`, a tool without a directory flag as `cd <worktree> && …` in the same call, because the working directory does not carry from one call to the next; every command in the foreground to its exit, one per call; output longer than a screen goes to `/tmp/<slug>-<n>.log` (the slug your branch with `/` as `-`) and its decisive part is read back; nothing interactive, no watchers or background runs; a run that cannot finish is stopped and reported
+> - Terminal: run every command by absolute path or through `git -C <worktree>` / `make -C <worktree>`, a tool without a directory flag in a subshell `(cd <worktree> && …)`, never a bare `cd` that moves the shared terminal; every command in the foreground to its exit, one per call, suffixed `&& echo ok || echo failed` because the harness shows no exit status; output longer than a screen goes to `/tmp/<slug>-<n>.log` (the slug your branch with `/` as `-`) and its decisive part is read back; nothing interactive, no watchers or background runs; a run cut by `signal: interrupt`, or stalled with #tool:execute/getTerminalOutput showing no progress, is a sibling's contention on the shared terminal — rerun it once; a stuck run is killed with #tool:execute/killTerminal and reported
+
+< yourself with Bash, one per call
+> yourself with #tool:execute/runInTerminal, one per call
+
+< - Run every command yourself with Bash in the foreground, waiting for exit; a run that outlasts the call's `timeout` is run again with a longer one, never backgrounded, and one that cannot finish is reported Failed; never return while a command runs or claim one that did not finish
+> - Run every command yourself with #tool:execute/runInTerminal in the foreground, waiting for exit; poll a backgrounded run with #tool:execute/getTerminalOutput until it ends, kill one that cannot finish with #tool:execute/killTerminal, and report it Failed; never return while a command runs or claim one that did not finish
+
+< the Bash call's `timeout` at its maximum and the same call repeated while it times out
+> #tool:execute/runInTerminal's `timeout` past it or `0`, polled with `sleep 60` if backgrounded
+
+< - Use WebSearch and WebFetch to look up references in external dependencies
+> - Use #tool:web/githubRepo to search references in external dependencies

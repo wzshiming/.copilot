@@ -4,9 +4,11 @@
 !/.prettierrc.json
 !/.markdownlint-cli2.jsonc
 !agents
+!copilot
 !scripts
 !tests
-!/*.md
+!/AGENTS.md
+!/README.md
 !/LICENSE
 !/Makefile
 

@@ -76,65 +76,65 @@ assert_same() {
 }
 
 @test "Challenger and Reviewer share one ## Constraints body" {
-  extract_section agents/challenger.agent.md Constraints | keep constraints agents/challenger.agent.md
-  extract_section agents/reviewer.agent.md Constraints | keep constraints agents/reviewer.agent.md
-  assert_same constraints agents/challenger.agent.md agents/reviewer.agent.md
+  extract_section agents/challenger.md Constraints | keep constraints agents/challenger.md
+  extract_section agents/reviewer.md Constraints | keep constraints agents/reviewer.md
+  assert_same constraints agents/challenger.md agents/reviewer.md
 }
 
 @test "Challenger and Reviewer quote the same fit question" {
-  extract_fit agents/challenger.agent.md | keep fit agents/challenger.agent.md
-  extract_fit agents/reviewer.agent.md | keep fit agents/reviewer.agent.md
-  assert_same fit agents/challenger.agent.md agents/reviewer.agent.md
+  extract_fit agents/challenger.md | keep fit agents/challenger.md
+  extract_fit agents/reviewer.md | keep fit agents/reviewer.md
+  assert_same fit agents/challenger.md agents/reviewer.md
 }
 
 @test "Orchestrator, Challenger, and Reviewer share the Executor-dispatch sentence" {
   local f
   for f in orchestrator:Rules challenger:Constraints reviewer:Constraints; do
-    extract_item "agents/${f%%:*}.agent.md" "${f#*:}" '(Commands: )?[Ee]very command —' \
+    extract_item "agents/${f%%:*}.md" "${f#*:}" '(Commands: )?[Ee]very command —' \
       | sed -E 's/^- (Commands: )?[Ee]very command/every command/' \
-      | keep executor-dispatch "agents/${f%%:*}.agent.md"
+      | keep executor-dispatch "agents/${f%%:*}.md"
   done
-  assert_same executor-dispatch agents/orchestrator.agent.md \
-    agents/challenger.agent.md agents/reviewer.agent.md
+  assert_same executor-dispatch agents/orchestrator.md \
+    agents/challenger.md agents/reviewer.md
 }
 
 @test "Scout, Executor, and Coder share the auto-approval bullet" {
-  extract_item agents/scout.agent.md Constraints 'Write auto-approvable commands:' \
-    | keep auto-approval agents/scout.agent.md
-  extract_item agents/executor.agent.md Constraints 'Write auto-approvable commands:' \
-    | keep auto-approval agents/executor.agent.md
-  extract_item agents/coder.agent.md Constraints 'Write auto-approvable commands:' \
-    | keep auto-approval agents/coder.agent.md
-  assert_same auto-approval agents/scout.agent.md agents/executor.agent.md \
-    agents/coder.agent.md
+  extract_item agents/scout.md Constraints 'Write auto-approvable commands:' \
+    | keep auto-approval agents/scout.md
+  extract_item agents/executor.md Constraints 'Write auto-approvable commands:' \
+    | keep auto-approval agents/executor.md
+  extract_item agents/coder.md Constraints 'Write auto-approvable commands:' \
+    | keep auto-approval agents/coder.md
+  assert_same auto-approval agents/scout.md agents/executor.md \
+    agents/coder.md
 }
 
 @test "Planner, Orchestrator, and Challenger share the Language rule" {
   local a
   for a in planner orchestrator challenger; do
-    extract_item "agents/$a.agent.md" Rules 'Language:' | keep language "agents/$a.agent.md"
+    extract_item "agents/$a.md" Rules 'Language:' | keep language "agents/$a.md"
   done
-  assert_same language agents/planner.agent.md agents/orchestrator.agent.md \
-    agents/challenger.agent.md
+  assert_same language agents/planner.md agents/orchestrator.md \
+    agents/challenger.md
 }
 
 @test "Planner, Orchestrator, and Challenger share the Parallel dispatch rule" {
   local a
   for a in planner orchestrator challenger; do
-    extract_item "agents/$a.agent.md" Rules 'Parallel dispatch:' \
-      | keep parallel-dispatch "agents/$a.agent.md"
+    extract_item "agents/$a.md" Rules 'Parallel dispatch:' \
+      | keep parallel-dispatch "agents/$a.md"
   done
-  assert_same parallel-dispatch agents/planner.agent.md agents/orchestrator.agent.md \
-    agents/challenger.agent.md
+  assert_same parallel-dispatch agents/planner.md agents/orchestrator.md \
+    agents/challenger.md
 }
 
 @test "Planner, Orchestrator, and Challenger share the Memory rule" {
   local a
   for a in planner orchestrator challenger; do
-    extract_item "agents/$a.agent.md" Rules 'Memory:' | keep memory "agents/$a.agent.md"
+    extract_item "agents/$a.md" Rules 'Memory:' | keep memory "agents/$a.md"
   done
-  assert_same memory agents/planner.agent.md agents/orchestrator.agent.md \
-    agents/challenger.agent.md
+  assert_same memory agents/planner.md agents/orchestrator.md \
+    agents/challenger.md
 }
 
 @test "worktree-add.sh and worktree-remove.sh share the take_lock block" {
